@@ -41,7 +41,7 @@ class SnifferViewModel {
     
     private func installHelperIfNeeded() {
         if #available(macOS 13.0, *) {
-            let service = SMAppService.daemon(plistName: "com.example.MyWiFiSnifferHelper.plist")
+            let service = SMAppService.daemon(plistName: "jp.daradara.WiFiSnifferToolHelper.plist")
             if service.status == .requiresApproval {
                 statusMessage = "システム設定でヘルパーの実行を許可してください"
                 return

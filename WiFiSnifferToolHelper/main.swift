@@ -42,9 +42,9 @@ class XcodeHelperDelegate: NSObject, NSXPCListenerDelegate {
 
 // 1. ヘルパーのMachサービス名（識別子）を定義
 // ※のちほど作成する Launchd.plist の「MachServices」に書く文字列と完全に一致させる必要があります。
-let helperMachServiceName = "com.example.MyWiFiSnifferHelper"
+let helperMachServiceName = "jp.daradara.WiFiSnifferToolHelper"
 
-print("MyWiFiSnifferHelper: 特権デーモンを起動中...")
+print("WiFiSnifferToolHelper: 特権デーモンを起動中...")
 
 // 2. Machサービス名を使ってXPCリスナーを初期化
 let listener = NSXPCListener(machServiceName: helperMachServiceName)
