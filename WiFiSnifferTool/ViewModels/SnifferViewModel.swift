@@ -124,7 +124,7 @@ class SnifferViewModel {
     private func setupXPCConnection() -> WiFiCaptureHelperProtocol? {
         if connection == nil {
             // ヘルパーのMachサービス名 (main.swiftで定義したものと同じ)
-            let machServiceName = "com.example.MyWiFiSnifferHelper"
+            let machServiceName = "jp.daradara.WiFiSnifferToolHelper"
             connection = NSXPCConnection(machServiceName: machServiceName, options: .privileged)
             
             // リモートオブジェクトが準拠するプロトコルを指定

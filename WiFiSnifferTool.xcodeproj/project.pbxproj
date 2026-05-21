@@ -28,6 +28,13 @@
 			remoteGlobalIDString = B886C63E2FBCD25C0005E4D7;
 			remoteInfo = WiFiSnifferTool;
 		};
+		B8F357C52FBE1293001C5058 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = B886C6372FBCD25C0005E4D7 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B8F357AC2FBDF0D3001C5058;
+			remoteInfo = jp.daradara.WiFiSnifferToolHelper;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -42,9 +49,9 @@
 		};
 		B8F357B72FBDF248001C5058 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
+			buildActionMask = 12;
 			dstPath = Contents/Library/LaunchDaemons;
-			dstSubfolderSpec = 16;
+			dstSubfolderSpec = 1;
 			files = (
 				B8F357B82FBDF2A6001C5058 /* jp.daradara.WiFiSnifferToolHelper in CopyFiles */,
 			);
@@ -71,11 +78,32 @@
 			);
 			target = B8F357AC2FBDF0D3001C5058 /* jp.daradara.WiFiSnifferToolHelper */;
 		};
+		B8F357F42FBF5C13001C5058 /* Exceptions for "WiFiSnifferTool" folder in "WiFiSnifferTool" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				jp.daradara.WiFiSnifferToolHelper.plist,
+			);
+			target = B886C63E2FBCD25C0005E4D7 /* WiFiSnifferTool */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		B8F357F62FBF5C31001C5058 /* Exceptions for "WiFiSnifferTool" folder in "Copy Files" phase from "WiFiSnifferTool" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			buildPhase = B8F357B72FBDF248001C5058 /* CopyFiles */;
+			membershipExceptions = (
+				jp.daradara.WiFiSnifferToolHelper.plist,
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B886C6412FBCD25C0005E4D7 /* WiFiSnifferTool */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B8F357F42FBF5C13001C5058 /* Exceptions for "WiFiSnifferTool" folder in "WiFiSnifferTool" target */,
+				B8F357F62FBF5C31001C5058 /* Exceptions for "WiFiSnifferTool" folder in "Copy Files" phase from "WiFiSnifferTool" target */,
+			);
 			path = WiFiSnifferTool;
 			sourceTree = "<group>";
 		};
@@ -188,6 +216,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				B8F357C62FBE1293001C5058 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				B886C6412FBCD25C0005E4D7 /* WiFiSnifferTool */,
@@ -380,6 +409,11 @@
 			target = B886C63E2FBCD25C0005E4D7 /* WiFiSnifferTool */;
 			targetProxy = B886C6592FBCD25D0005E4D7 /* PBXContainerItemProxy */;
 		};
+		B8F357C62FBE1293001C5058 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B8F357AC2FBDF0D3001C5058 /* jp.daradara.WiFiSnifferToolHelper */;
+			targetProxy = B8F357C52FBE1293001C5058 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -508,15 +542,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 57KZ5N4K7K;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WiFiSnifferTool/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WiFiSnifferTool;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -525,6 +563,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = jp.daradara.WiFiSnifferTool;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -540,15 +579,19 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 57KZ5N4K7K;
-				ENABLE_APP_SANDBOX = YES;
+				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
-				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = WiFiSnifferTool/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = WiFiSnifferTool;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -557,6 +600,7 @@
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = jp.daradara.WiFiSnifferTool;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -652,14 +696,11 @@
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = 57KZ5N4K7K;
 				ENABLE_HARDENED_RUNTIME = YES;
-				OTHER_LDFLAGS = (
-					"-sectcreate",
-					__TEXT,
-					__launchd_plist,
-					"$(SRCROOT)/WiFiSnifferToolHelper/Launchd.plist",
-				);
+				INFOPLIST_FILE = "$(SRCROOT)/WiFiSnifferToolHelper/Info.plist";
+				OTHER_LDFLAGS = "";
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = jp.daradara.WiFiSnifferToolHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -673,14 +714,11 @@
 			buildSettings = {
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				CREATE_INFOPLIST_SECTION_IN_BINARY = YES;
 				DEVELOPMENT_TEAM = 57KZ5N4K7K;
 				ENABLE_HARDENED_RUNTIME = YES;
-				OTHER_LDFLAGS = (
-					"-sectcreate",
-					__TEXT,
-					__launchd_plist,
-					"$(SRCROOT)/WiFiSnifferToolHelper/Launchd.plist",
-				);
+				INFOPLIST_FILE = "$(SRCROOT)/WiFiSnifferToolHelper/Info.plist";
+				OTHER_LDFLAGS = "";
 				"PRODUCT_BUNDLE_IDENTIFIER[sdk=macosx*]" = jp.daradara.WiFiSnifferToolHelper;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
