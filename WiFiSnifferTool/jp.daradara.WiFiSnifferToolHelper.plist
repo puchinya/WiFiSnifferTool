@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.2.dtd">
+<plist version="1.0">
+<dict>
+    <!-- 1. ヘルパーの識別子（MachServices名と一致させる） -->
+        <key>Label</key>
+        <string>jp.daradara.WiFiSnifferToolHelper</string>
+
+        <!-- 2. XPC通信で利用する名前を宣言 -->
+        <key>MachServices</key>
+        <dict>
+            <key>jp.daradara.WiFiSnifferToolHelper</key>
+            <true/>
+        </dict>
+
+        <!-- 3. 【重要】BundleProgramキーを使用する -->
+        <key>BundleProgram</key>
+        <string>Contents/Library/LaunchDaemons/jp.daradara.WiFiSnifferToolHelper</string>
+</dict>
+</plist>
