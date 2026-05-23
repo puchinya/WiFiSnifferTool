@@ -9,5 +9,7 @@
 		<key>jp.daradara.WiFiSnifferToolHelper</key>
         <string>identifier "jp.daradara.WiFiSnifferToolHelper" and anchor apple generic and certificate leaf[subject.OU] = "K52H2VC9FL"</string>
 	</dict>
+    <key>LSUIElement</key>
+    <true/>
 </dict>
 </plist>

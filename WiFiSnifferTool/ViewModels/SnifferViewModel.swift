@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreWLAN
 import ServiceManagement
+import Combine
 
 @Observable
 class SnifferViewModel {
@@ -28,8 +29,12 @@ class SnifferViewModel {
     
     // ヘルパーとのXPC接続
     private var connection: NSXPCConnection?
-    // パイプからの読み込みタスク
-    private var readTask: Task<Void, Never>?
+    
+    // Wiresharkの外部プロセスを管理
+    private var wiresharkProcess: Process?
+    
+    // アプリ終了イベント監視用
+    private var cancellables = Set<AnyCancellable>()
     
     // CoreWLANクライアントから取得した生のチャンネル情報キャッシュ
     private var cachedWLANChannels: [CWChannel] = []
@@ -37,6 +42,51 @@ class SnifferViewModel {
     init() {
         installHelperIfNeeded()
         fetchInterfaces()
+        setupAppLifecycleObserver()
+    }
+    
+    // インスタンス破棄時（画面遷移やViewModel解放時）のライフサイクル
+    deinit {
+        // 同期的に実行できるプロセス終了と、ヘルパーへの通知を即座に行う
+        // ※ 完全にアプリが落ちる直前なので、同期的な終了処理をメインで動かす
+        if isCapturing {
+            // バックグラウンドスレッドからの安全な停止を即時呼び出し
+            let helper = connection?.remoteObjectProxy as? WiFiCaptureHelperProtocol
+            helper?.stopCapture { _ in }
+            
+            if let process = wiresharkProcess, process.isRunning {
+                process.terminate()
+            }
+        }
+    }
+    
+    // アプリ全体の終了イベント（Cmd + Qなど）を監視する設定
+    private func setupAppLifecycleObserver() {
+        NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)
+            .sink { [weak self] _ in
+                print("アプリが終了します。キャプチャをクリーンアップします。")
+                self?.executeImmediateCleanup()
+            }
+            .store(in: &cancellables)
+    }
+    
+    // アプリ終了時に非同期コールバックを待たずに即時リソースを解放するメソッド
+    private func executeImmediateCleanup() {
+        // 1. Wiresharkプロセスの強制終了
+        if let process = wiresharkProcess, process.isRunning {
+            process.terminationHandler = nil // ループを防ぐためハンドラをクリア
+            process.terminate()
+        }
+        wiresharkProcess = nil
+        
+        // 2. ヘルパー（XPC）への最後の停止通知（同期的に呼び出して終了を確実にする）
+        if let helper = connection?.remoteObjectProxy as? WiFiCaptureHelperProtocol {
+            helper.stopCapture { _ in }
+        }
+        
+        // 3. XPC接続の切断
+        connection?.invalidate()
+        connection = nil
     }
     
     private func installHelperIfNeeded() {
@@ -55,7 +105,7 @@ class SnifferViewModel {
                     statusMessage = "ヘルパーツールのインストールに失敗しました"
                 }
             } else {
-                 print("ヘルパーは既に登録されています")
+                print("ヘルパーは既に登録されています")
             }
         }
     }
@@ -64,7 +114,7 @@ class SnifferViewModel {
         let client = CWWiFiClient.shared()
         availableInterfaces = client.interfaces()?.compactMap { $0.interfaceName } ?? ["en0"]
         if let first = availableInterfaces.first {
-            selectedInterface = first // didSetが呼ばれ、updateAvailableChannelsが実行される
+            selectedInterface = first
         } else {
             updateAvailableChannels()
         }
@@ -80,20 +130,17 @@ class SnifferViewModel {
         
         cachedWLANChannels = Array(channels)
         
-        // チャンネル番号の重複を排除してソート
         let uniqueChannels = Set(cachedWLANChannels.map { $0.channelNumber })
         availableChannels = Array(uniqueChannels).sorted()
         
-        // 現在選択されているチャンネルが新しいリストに含まれていなければ、最初の要素を選択
         if !availableChannels.contains(selectedChannel), let firstChannel = availableChannels.first {
-            selectedChannel = firstChannel // didSetが呼ばれ、updateAvailableWidthsが実行される
+            selectedChannel = firstChannel
         } else {
             updateAvailableWidths()
         }
     }
     
     private func updateAvailableWidths() {
-        // 現在選択されているチャンネル番号に一致する CWChannel を抽出
         let channelsForSelectedNumber = cachedWLANChannels.filter { $0.channelNumber == selectedChannel }
         
         var widths = Set<Int>()
@@ -109,25 +156,19 @@ class SnifferViewModel {
         
         availableWidths = Array(widths).sorted()
         
-        // 取得できない場合や未知の幅の場合はデフォルトで20を含める
         if availableWidths.isEmpty {
             availableWidths = [20]
         }
         
-        // 現在選択されている幅が新しいリストに含まれていなければ、最初の要素を選択
         if !availableWidths.contains(selectedChannelWidth), let firstWidth = availableWidths.first {
             selectedChannelWidth = firstWidth
         }
     }
     
-    // ヘルパーとのXPC接続を確立する
     private func setupXPCConnection() -> WiFiCaptureHelperProtocol? {
         if connection == nil {
-            // ヘルパーのMachサービス名 (main.swiftで定義したものと同じ)
             let machServiceName = "jp.daradara.WiFiSnifferToolHelper"
             connection = NSXPCConnection(machServiceName: machServiceName, options: .privileged)
-            
-            // リモートオブジェクトが準拠するプロトコルを指定
             connection?.remoteObjectInterface = NSXPCInterface(with: WiFiCaptureHelperProtocol.self)
             
             connection?.interruptionHandler = { [weak self] in
@@ -153,7 +194,7 @@ class SnifferViewModel {
             self.isCapturing = false
             self.statusMessage = "ヘルパーツールとの通信が切断されました"
             self.connection = nil
-            self.stopPipeReading()
+            self.terminateWireshark()
         }
     }
     
@@ -166,10 +207,6 @@ class SnifferViewModel {
         
         statusMessage = "キャプチャを開始しています..."
         
-        // 1. パイプからの読み込みを非同期で開始（pcap_dump_openのブロックを防ぐため先に開始する）
-        startPipeReading()
-        
-        // 2. ヘルパーにキャプチャ開始を指示
         helper.startCapture(onInterface: selectedInterface,
                             channel: selectedChannel,
                             width: selectedChannelWidth,
@@ -178,12 +215,43 @@ class SnifferViewModel {
                 if let err = errorString {
                     self?.statusMessage = "エラー: \(err)"
                     self?.isCapturing = false
-                    self?.stopPipeReading()
+                    self?.terminateWireshark()
                 } else {
                     self?.isCapturing = true
                     self?.statusMessage = "キャプチャ中 (\(self?.selectedInterface ?? ""))"
+                    self?.launchWireshark()
                 }
             }
+        }
+    }
+    
+    // Wiresharkを起動して名前付きパイプを読み込ませる
+    private func launchWireshark() {
+        terminateWireshark()
+        
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/Applications/Wireshark.app/Contents/MacOS/Wireshark")
+        process.arguments = ["-i", outputPipePath, "-k"]
+        
+        // Wiresharkが終了したときのハンドラ
+        process.terminationHandler = { [weak self] _ in
+            print("Wiresharkが終了しました")
+            // メインスレッドで安全に状態更新とキャプチャ停止処理を叩く
+            DispatchQueue.main.async {
+                if self?.isCapturing == true {
+                    self?.stopCapture()
+                }
+            }
+        }
+        
+        do {
+            try process.run()
+            self.wiresharkProcess = process
+            print("Wiresharkを起動しました（パイプ: \(outputPipePath)）")
+        } catch {
+            print("Wiresharkの起動に失敗しました: \(error.localizedDescription)")
+            statusMessage = "Wiresharkの起動に失敗しました。パスを確認してください。"
+            stopCapture()
         }
     }
     
@@ -194,7 +262,7 @@ class SnifferViewModel {
         guard let helper = connection?.remoteObjectProxy as? WiFiCaptureHelperProtocol else {
             isCapturing = false
             statusMessage = "待機中"
-            stopPipeReading()
+            terminateWireshark()
             return
         }
         
@@ -202,55 +270,16 @@ class SnifferViewModel {
             Task { @MainActor in
                 self?.isCapturing = false
                 self?.statusMessage = errorString ?? "待機中"
-                self?.stopPipeReading()
+                self?.terminateWireshark()
             }
         }
     }
     
-    // 名前付きパイプからデータを読み込む（今回はコンソールへの出力またはダミー処理）
-    private func startPipeReading() {
-        stopPipeReading()
-        
-        let pipeURL = URL(fileURLWithPath: outputPipePath)
-        
-        readTask = Task.detached(priority: .background) { [weak self] in
-            // ヘルパーがmkfifoするまで少し待つ場合がある
-            var fileHandle: FileHandle? = nil
-            for _ in 0..<10 { // 最大10回リトライ (約5秒)
-                if Task.isCancelled { return }
-                do {
-                    fileHandle = try FileHandle(forReadingFrom: pipeURL)
-                    break
-                } catch {
-                    try? await Task.sleep(nanoseconds: 500_000_000) // 0.5秒待機
-                }
-            }
-            
-            guard let handle = fileHandle else {
-                Task { @MainActor in self?.statusMessage = "パイプの読み取りに失敗しました" }
-                return
-            }
-            
-            defer { try? handle.close() }
-            print("パイプからの読み取りを開始しました: \(pipeURL.path)")
-            
-            // ストリーム読み込み
-            do {
-                for try await data in handle.bytes {
-                    if Task.isCancelled { break }
-                    // ここで読み取ったデータを処理（Wiresharkに流す、ファイルに保存する、GUIで解析するなど）
-                    // ※ UI更新は重いため、データ処理はバックグラウンドで行うこと
-                    _ = data
-                }
-            } catch {
-                print("パイプ読み込みエラー: \(error)")
-            }
-            print("パイプからの読み取りが終了しました")
+    private func terminateWireshark() {
+        if let process = wiresharkProcess, process.isRunning {
+            process.terminationHandler = nil // 重複トリガーを防ぐためnilを入れる
+            process.terminate()
         }
-    }
-    
-    private func stopPipeReading() {
-        readTask?.cancel()
-        readTask = nil
+        wiresharkProcess = nil
     }
 }

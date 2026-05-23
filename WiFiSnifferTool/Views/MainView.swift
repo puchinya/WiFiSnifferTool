@@ -4,7 +4,7 @@ struct MainView: View {
     @State private var viewModel = SnifferViewModel()
     
     var body: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 15) { // 終了ボタンが入るため spacing を少し詰めました
             // ステータス表示
             HStack {
                 Circle()
@@ -61,9 +61,25 @@ struct MainView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(viewModel.isCapturing ? .red : .blue)
             }
-            .padding(.bottom, 20)
+            
+            Divider()
+            
+            // アプリ終了ボタン（トレイ型アプリに必須の脱出経路）
+            HStack {
+                Spacer()
+                Button(action: {
+                    NSApplication.shared.terminate(nil)
+                }) {
+                    Text("WiFi Sniffer を終了")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain) // 悪目立ちしないシンプルなテキストボタンに
+            }
+            .padding(.horizontal)
+            .padding(.bottom, 5)
         }
-        .frame(width: 350, height: 350)
+        .frame(width: 350, height: 380) // 終了ボタンの分、高さを少しだけ広げました
         .padding()
     }
 }
