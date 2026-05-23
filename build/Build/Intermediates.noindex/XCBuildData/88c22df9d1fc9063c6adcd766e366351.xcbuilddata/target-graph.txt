@@ -1,4 +1,0 @@
-Target dependency graph (2 targets)
-Target 'WiFiSnifferTool' in project 'WiFiSnifferTool'
-➜ Explicit dependency on target 'jp.daradara.WiFiSnifferToolHelper' in project 'WiFiSnifferTool'
-Target 'jp.daradara.WiFiSnifferToolHelper' in project 'WiFiSnifferTool' (no dependencies)
