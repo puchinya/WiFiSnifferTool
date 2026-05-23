@@ -1,32 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!--
-   Info.plist
-   WiFiSnifferTool
-
-   Created by 鍋島雅貴 on 2026/05/21.
-   Copyright (c) 2026 ___ORGANIZATIONNAME___. All rights reserved.
--->
 <plist version="1.0">
     <dict>
-        <!-- 1. バイナリの識別子（Bundle IDの代わり） -->
         <key>CFBundleIdentifier</key>
         <string>jp.daradara.WiFiSnifferToolHelper</string>
-        
-        <!-- 2. バージョン情報（これらが無いとビルドエラーになることがあります） -->
         <key>CFBundleInfoDictionaryVersion</key>
         <string>6.0</string>
         <key>CFBundleName</key>
         <string>WiFiSnifferToolHelper</string>
         <key>CFBundleVersion</key>
-        <string>1.0</string>
-        <key>CFBundleShortVersionString</key>
-        <string>1.0</string>
-        
-        <!-- 3. セキュリティ設定：このヘルパーを起動していいメインアプリを指定 -->
+        <string>1.1</string>
         <key>SMAuthorizedClients</key>
         <array>
-            <string>anchor apple generic and identifier "jp.daradara.WiFiSnifferTool" and certificate leaf[subject.OU] = "57KZ5N4K7K"</string>
+            <string>anchor apple generic and identifier &quot;jp.daradara.WiFiSnifferTool&quot; and certificate leaf[subject.OU] = &quot;57KZ5N4K7K&quot;</string>
         </array>
     </dict>
 </plist>

@@ -102,9 +102,14 @@ struct MainView: View {
                 .buttonStyle(.plain)
             }
             .padding(.horizontal)
-            .padding(.bottom, 5)
+            
+            Text(viewModel.appVersion)
+                .font(.system(size: 9))
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.bottom, 2)
         }
-        .frame(width: 350, height: 380)
+        .frame(width: 350, height: 360)
         .padding()
     }
 }

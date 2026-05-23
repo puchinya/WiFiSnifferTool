@@ -30,6 +30,12 @@ class SnifferViewModel {
     var availableChannels: [Int] = []
     var availableWidths: [Int] = []
     
+    var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return "Version \(version) (\(build))"
+    }
+    
     // ヘルパーとのXPC接続
     private var connection: NSXPCConnection?
     
