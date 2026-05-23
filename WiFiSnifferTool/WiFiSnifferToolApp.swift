@@ -10,7 +10,7 @@ import SwiftUI
 @main
 struct WiFiSnifferToolApp: App {
     var body: some Scene {
-        MenuBarExtra("WiFi Sniffer", systemImage: "wifi.viewfinder") {
+        MenuBarExtra("WiFi Sniffer", image: "wifi-sniffer") {
             MainView()
         }
         .menuBarExtraStyle(.window)
