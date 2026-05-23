@@ -7,6 +7,7 @@ import Combine
 class SnifferViewModel {
     var isCapturing: Bool = false
     var statusMessage: String = "待機中"
+    var requiresApproval: Bool = false
     
     // ネットワーク設定
     var selectedInterface: String = "en0" {
@@ -92,7 +93,18 @@ class SnifferViewModel {
     private func installHelperIfNeeded() {
         if #available(macOS 13.0, *) {
             let service = SMAppService.daemon(plistName: "jp.daradara.WiFiSnifferToolHelper.plist")
+            
+            // 定期的に状態を確認して、ユーザーが設定で許可したのを検知する
+            Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] timer in
+                if service.status == .enabled {
+                    self?.requiresApproval = false
+                    self?.statusMessage = "待機中"
+                    timer.invalidate()
+                }
+            }
+
             if service.status == .requiresApproval {
+                requiresApproval = true
                 statusMessage = "システム設定でヘルパーの実行を許可してください"
                 return
             }
@@ -106,7 +118,15 @@ class SnifferViewModel {
                 }
             } else {
                 print("ヘルパーは既に登録されています")
+                requiresApproval = false
             }
+        }
+    }
+    
+    // システム設定の「ログイン項目」を開く
+    func openSystemSettings() {
+        if #available(macOS 13.0, *) {
+            SMAppService.openSystemSettingsLoginItems()
         }
     }
     

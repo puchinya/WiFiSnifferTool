@@ -6,12 +6,25 @@ struct MainView: View {
     var body: some View {
         VStack(spacing: 15) { // 終了ボタンが入るため spacing を少し詰めました
             // ステータス表示
-            HStack {
-                Circle()
-                    .fill(viewModel.isCapturing ? Color.green : Color.gray)
-                    .frame(width: 12, height: 12)
-                Text(viewModel.statusMessage)
-                    .font(.headline)
+            VStack(spacing: 5) {
+                HStack {
+                    Circle()
+                        .fill(viewModel.isCapturing ? Color.green : Color.gray)
+                        .frame(width: 12, height: 12)
+                    Text(viewModel.statusMessage)
+                        .font(.headline)
+                }
+                
+                if viewModel.requiresApproval {
+                    Button(action: {
+                        viewModel.openSystemSettings()
+                    }) {
+                        Label("システム設定を開く", systemImage: "arrow.up.forward.square")
+                            .font(.subheadline)
+                    }
+                    .buttonStyle(.link)
+                    .foregroundColor(.blue)
+                }
             }
             .padding(.top, 10)
             
