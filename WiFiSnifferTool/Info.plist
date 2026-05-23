@@ -7,7 +7,7 @@
 	<key>SMPrivilegedExecutables</key>
 	<dict>
 		<key>jp.daradara.WiFiSnifferToolHelper</key>
-        <string>identifier "jp.daradara.WiFiSnifferToolHelper" and anchor apple generic and certificate leaf[subject.OU] = "K52H2VC9FL"</string>
+        <string>identifier "jp.daradara.WiFiSnifferToolHelper" and anchor apple generic and certificate leaf[subject.OU] = "57KZ5N4K7K"</string>
 	</dict>
     <key>LSUIElement</key>
     <true/>

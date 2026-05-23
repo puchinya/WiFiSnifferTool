@@ -26,7 +26,7 @@
         <!-- 3. セキュリティ設定：このヘルパーを起動していいメインアプリを指定 -->
         <key>SMAuthorizedClients</key>
         <array>
-            <string>anchor apple generic and identifier "jp.daradara.WiFiSnifferTool" and certificate leaf[subject.OU] = "K52H2VC9FL"</string>
+            <string>anchor apple generic and identifier "jp.daradara.WiFiSnifferTool" and certificate leaf[subject.OU] = "57KZ5N4K7K"</string>
         </array>
     </dict>
 </plist>
