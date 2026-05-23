@@ -73,6 +73,7 @@ struct MainView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(viewModel.isCapturing ? .red : .blue)
+                .disabled(viewModel.isProcessing)
             }
             
             Divider()

@@ -53,6 +53,7 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
     
     private var isCapturing = false
     private var currentInterface: String?
+    private var currentPipePath: String?
     private var pcapHandle: OpaquePointer?
     
     // 1. キャプチャ開始
@@ -73,6 +74,7 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
         
         isCapturing = true
         currentInterface = interfaceName
+        currentPipePath = outputNamedPipe
         
         // バックグラウンドスレッド等で pcap_open_live / pcap_loop などを実行
         DispatchQueue.global(qos: .userInitiated).async {
@@ -120,6 +122,17 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
         
         print("キャプチャを停止中...")
         isCapturing = false
+        
+        // pcap_dump_open がパイプのオープン待ちでブロックしている可能性があるため、
+        // ダミーでオープンしてブロックを強制解除する
+        if let pipePath = currentPipePath {
+            DispatchQueue.global().async {
+                let fd = open(pipePath, O_RDONLY | O_NONBLOCK)
+                if fd != -1 {
+                    close(fd)
+                }
+            }
+        }
         
         if let handle = pcapHandle {
             pcap_breakloop(handle)

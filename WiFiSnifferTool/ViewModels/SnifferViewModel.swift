@@ -3,9 +3,11 @@ import CoreWLAN
 import ServiceManagement
 import Combine
 
+@MainActor
 @Observable
 class SnifferViewModel {
     var isCapturing: Bool = false
+    var isProcessing: Bool = false
     var statusMessage: String = "待機中"
     var requiresApproval: Bool = false
     
@@ -48,17 +50,10 @@ class SnifferViewModel {
     
     // インスタンス破棄時（画面遷移やViewModel解放時）のライフサイクル
     deinit {
-        // 同期的に実行できるプロセス終了と、ヘルパーへの通知を即座に行う
-        // ※ 完全にアプリが落ちる直前なので、同期的な終了処理をメインで動かす
-        if isCapturing {
-            // バックグラウンドスレッドからの安全な停止を即時呼び出し
-            let helper = connection?.remoteObjectProxy as? WiFiCaptureHelperProtocol
-            helper?.stopCapture { _ in }
-            
-            if let process = wiresharkProcess, process.isRunning {
-                process.terminate()
-            }
-        }
+        // deinitはnonisolatedなため、MainActor孤立プロパティに直接アクセスできません。
+        // ここでは安全のため、フラグチェックのみを行い、実際のリソース解放は
+        // setupAppLifecycleObserver で管理される willTerminateNotification 等に任せます。
+        // ※ 完全にアプリが落ちる直前のクリーンアップは setupAppLifecycleObserver で行われます。
     }
     
     // アプリ全体の終了イベント（Cmd + Qなど）を監視する設定
@@ -66,7 +61,9 @@ class SnifferViewModel {
         NotificationCenter.default.publisher(for: NSApplication.willTerminateNotification)
             .sink { [weak self] _ in
                 print("アプリが終了します。キャプチャをクリーンアップします。")
-                self?.executeImmediateCleanup()
+                Task { @MainActor in
+                    self?.executeImmediateCleanup()
+                }
             }
             .store(in: &cancellables)
     }
@@ -227,8 +224,13 @@ class SnifferViewModel {
     
     private func handleXPCError() {
         Task { @MainActor in
+            // 意図的な停止中（isProcessing == true かつ isCapturing == true の状態から停止）
+            // の場合は、切断メッセージを表示しないようにする
+            if self.isCapturing {
+                self.statusMessage = "ヘルパーツールとの通信が切断されました"
+            }
             self.isCapturing = false
-            self.statusMessage = "ヘルパーツールとの通信が切断されました"
+            self.isProcessing = false
             self.connection = nil
             self.terminateWireshark()
         }
@@ -236,18 +238,23 @@ class SnifferViewModel {
     
     // キャプチャの開始
     func startCapture() {
+        guard !isProcessing else { return }
+        
         guard let helper = setupXPCConnection() else {
             statusMessage = "ヘルパーツールに接続できません。インストールされているか確認してください。"
             return
         }
         
+        isProcessing = true
         statusMessage = "キャプチャを開始しています..."
         
         helper.startCapture(onInterface: selectedInterface,
                             channel: selectedChannel,
                             width: selectedChannelWidth,
                             outputNamedPipe: outputPipePath) { [weak self] errorString in
-            Task { @MainActor in
+            // MainActor クラスなので DispatchQueue.main.async または Task { @MainActor } で戻す
+            DispatchQueue.main.async {
+                self?.isProcessing = false
                 if let err = errorString {
                     self?.statusMessage = "エラー: \(err)"
                     self?.isCapturing = false
@@ -293,18 +300,25 @@ class SnifferViewModel {
     
     // キャプチャの停止
     func stopCapture() {
+        guard !isProcessing else { return }
+        
         statusMessage = "停止中..."
+        isProcessing = true
         
         guard let helper = connection?.remoteObjectProxy as? WiFiCaptureHelperProtocol else {
             isCapturing = false
+            isProcessing = false
             statusMessage = "待機中"
             terminateWireshark()
             return
         }
         
         helper.stopCapture { [weak self] errorString in
-            Task { @MainActor in
+            DispatchQueue.main.async {
+                // 先に isCapturing を false にすることで、後の handleXPCError での
+                // メッセージ上書きを防ぐ
                 self?.isCapturing = false
+                self?.isProcessing = false
                 self?.statusMessage = errorString ?? "待機中"
                 self?.terminateWireshark()
             }
