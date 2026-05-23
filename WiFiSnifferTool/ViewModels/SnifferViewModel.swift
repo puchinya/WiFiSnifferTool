@@ -95,14 +95,14 @@ class SnifferViewModel {
             Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] timer in
                 if service.status == .enabled {
                     self?.requiresApproval = false
-                    self?.statusMessage = "待機中"
+                    self?.statusMessage = String(localized: "待機中")
                     timer.invalidate()
                 }
             }
 
             if service.status == .requiresApproval {
                 requiresApproval = true
-                statusMessage = "システム設定でヘルパーの実行を許可してください"
+                statusMessage = String(localized: "システム設定でヘルパーの実行を許可してください")
                 return
             }
             if service.status != .enabled {
@@ -111,7 +111,7 @@ class SnifferViewModel {
                     print("ヘルパーを登録しました")
                 } catch {
                     print("ヘルパーの登録に失敗しました: \(error)")
-                    statusMessage = "ヘルパーツールのインストールに失敗しました"
+                    statusMessage = String(localized: "ヘルパーツールのインストールに失敗しました")
                 }
             } else {
                 print("ヘルパーは既に登録されています")
@@ -133,12 +133,12 @@ class SnifferViewModel {
             let service = SMAppService.daemon(plistName: "jp.daradara.WiFiSnifferToolHelper.plist")
             do {
                 try service.unregister()
-                statusMessage = "ヘルパーをアンインストールしました"
+                statusMessage = String(localized: "ヘルパーをアンインストールしました")
                 requiresApproval = false
                 print("ヘルパーの登録を解除しました")
             } catch {
                 print("ヘルパーの解除に失敗しました: \(error)")
-                statusMessage = "アンインストールに失敗しました"
+                statusMessage = String(localized: "アンインストールに失敗しました")
             }
         }
     }
@@ -227,7 +227,7 @@ class SnifferViewModel {
             // 意図的な停止中（isProcessing == true かつ isCapturing == true の状態から停止）
             // の場合は、切断メッセージを表示しないようにする
             if self.isCapturing {
-                self.statusMessage = "ヘルパーツールとの通信が切断されました"
+                self.statusMessage = String(localized: "ヘルパーツールとの通信が切断されました")
             }
             self.isCapturing = false
             self.isProcessing = false
@@ -241,12 +241,12 @@ class SnifferViewModel {
         guard !isProcessing else { return }
         
         guard let helper = setupXPCConnection() else {
-            statusMessage = "ヘルパーツールに接続できません。インストールされているか確認してください。"
+            statusMessage = String(localized: "ヘルパーツールに接続できません。インストールされているか確認してください。")
             return
         }
         
         isProcessing = true
-        statusMessage = "キャプチャを開始しています..."
+        statusMessage = String(localized: "キャプチャを開始しています...")
         
         helper.startCapture(onInterface: selectedInterface,
                             channel: selectedChannel,
@@ -256,12 +256,13 @@ class SnifferViewModel {
             DispatchQueue.main.async {
                 self?.isProcessing = false
                 if let err = errorString {
-                    self?.statusMessage = "エラー: \(err)"
+                    self?.statusMessage = String(localized: "エラー: \(err)")
                     self?.isCapturing = false
                     self?.terminateWireshark()
                 } else {
                     self?.isCapturing = true
-                    self?.statusMessage = "キャプチャ中 (\(self?.selectedInterface ?? ""))"
+                    let interface = self?.selectedInterface ?? ""
+                    self?.statusMessage = String(localized: "キャプチャ中 (\(interface))")
                     self?.launchWireshark()
                 }
             }
@@ -302,13 +303,13 @@ class SnifferViewModel {
     func stopCapture() {
         guard !isProcessing else { return }
         
-        statusMessage = "停止中..."
+        statusMessage = String(localized: "停止中...")
         isProcessing = true
         
         guard let helper = connection?.remoteObjectProxy as? WiFiCaptureHelperProtocol else {
             isCapturing = false
             isProcessing = false
-            statusMessage = "待機中"
+            statusMessage = String(localized: "待機中")
             terminateWireshark()
             return
         }
@@ -319,7 +320,11 @@ class SnifferViewModel {
                 // メッセージ上書きを防ぐ
                 self?.isCapturing = false
                 self?.isProcessing = false
-                self?.statusMessage = errorString ?? "待機中"
+                if let errorString = errorString {
+                    self?.statusMessage = String(localized: "エラー: \(errorString)")
+                } else {
+                    self?.statusMessage = String(localized: "待機中")
+                }
                 self?.terminateWireshark()
             }
         }

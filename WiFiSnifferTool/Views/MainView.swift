@@ -4,14 +4,14 @@ struct MainView: View {
     @State private var viewModel = SnifferViewModel()
     
     var body: some View {
-        VStack(spacing: 15) { // 終了ボタンが入るため spacing を少し詰めました
+        VStack(spacing: 15) {
             // ステータス表示
             VStack(spacing: 5) {
                 HStack {
                     Circle()
                         .fill(viewModel.isCapturing ? Color.green : Color.gray)
                         .frame(width: 12, height: 12)
-                    Text(viewModel.statusMessage)
+                    Text(LocalizedStringKey(viewModel.statusMessage))
                         .font(.headline)
                 }
                 
@@ -104,7 +104,7 @@ struct MainView: View {
             .padding(.horizontal)
             .padding(.bottom, 5)
         }
-        .frame(width: 350, height: 380) // 終了ボタンの分、高さを少しだけ広げました
+        .frame(width: 350, height: 380)
         .padding()
     }
 }

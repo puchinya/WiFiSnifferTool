@@ -67,6 +67,7 @@
 		B8F357AD2FBDF0D3001C5058 /* jp.daradara.WiFiSnifferToolHelper */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = jp.daradara.WiFiSnifferToolHelper; sourceTree = BUILT_PRODUCTS_DIR; };
 		B8F357BE2FBDF69F001C5058 /* GEMINI.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = GEMINI.md; sourceTree = "<group>"; };
 		B8F357C02FBDF903001C5058 /* libpcap.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libpcap.tbd; path = usr/lib/libpcap.tbd; sourceTree = SDKROOT; };
+		B8F358132FC15F2C001C5058 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -171,6 +172,7 @@
 				B8F357A82FBDF083001C5058 /* WiFiSnifferToolHelper */,
 				B8F357BF2FBDF903001C5058 /* Frameworks */,
 				B886C6402FBCD25C0005E4D7 /* Products */,
+				B8F358132FC15F2C001C5058 /* Localizable.xcstrings */,
 			);
 			sourceTree = "<group>";
 		};
