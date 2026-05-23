@@ -1,0 +1,12 @@
+{
+  "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/Shared/WiFiCaptureProtocol.swift" : {
+    "abi-baseline-json" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp_daradara_WiFiSnifferToolHelper.abi.json",
+    "const-values" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp.daradara.WiFiSnifferToolHelper-primary.swiftconstvalues",
+    "dependencies" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp.daradara.WiFiSnifferToolHelper-primary.d",
+    "diagnostics" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp.daradara.WiFiSnifferToolHelper-primary.dia",
+    "objc-header" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp_daradara_WiFiSnifferToolHelper-Swift.h",
+    "swiftdoc" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp_daradara_WiFiSnifferToolHelper.swiftdoc",
+    "swiftmodule" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp_daradara_WiFiSnifferToolHelper.swiftmodule",
+    "swiftsourceinfo" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp_daradara_WiFiSnifferToolHelper.swiftsourceinfo"
+  }
+}

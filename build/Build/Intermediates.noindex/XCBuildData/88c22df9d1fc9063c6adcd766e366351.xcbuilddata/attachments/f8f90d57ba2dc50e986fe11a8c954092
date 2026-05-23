@@ -1,0 +1,26 @@
+{
+  "" : {
+    "const-values" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp.daradara.WiFiSnifferToolHelper-primary.swiftconstvalues",
+    "dependencies" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp.daradara.WiFiSnifferToolHelper-primary.d",
+    "diagnostics" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp.daradara.WiFiSnifferToolHelper-primary.dia",
+    "emit-module-dependencies" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp.daradara.WiFiSnifferToolHelper-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp.daradara.WiFiSnifferToolHelper-primary-emit-module.dia",
+    "pch" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp.daradara.WiFiSnifferToolHelper-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/jp.daradara.WiFiSnifferToolHelper-primary.swiftdeps"
+  },
+  "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/Shared/WiFiCaptureProtocol.swift" : {
+    "index-unit-output-path" : "/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/WiFiCaptureProtocol.o",
+    "llvm-bc" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/WiFiCaptureProtocol.bc",
+    "object" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/WiFiCaptureProtocol.o"
+  },
+  "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/WiFiSnifferToolHelper/WiFiCaptureHelper.swift" : {
+    "index-unit-output-path" : "/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/WiFiCaptureHelper.o",
+    "llvm-bc" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/WiFiCaptureHelper.bc",
+    "object" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/WiFiCaptureHelper.o"
+  },
+  "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/WiFiSnifferToolHelper/main.swift" : {
+    "index-unit-output-path" : "/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/main.o",
+    "llvm-bc" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/main.bc",
+    "object" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/jp.daradara.WiFiSnifferToolHelper.build/Objects-normal/arm64/main.o"
+  }
+}

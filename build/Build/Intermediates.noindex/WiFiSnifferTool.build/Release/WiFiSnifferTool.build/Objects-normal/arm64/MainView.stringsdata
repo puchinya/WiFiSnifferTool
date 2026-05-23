@@ -1,0 +1,96 @@
+{
+  "source": "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/WiFiSnifferTool/Views/MainView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "システム設定を開く",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 22
+        }
+      },
+      {
+        "comment": "",
+        "key": "インターフェース:",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "チャンネル:",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "チャンネル幅:",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "出力先パイプ:",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld MHz",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "停止",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "キャプチャ開始",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "ヘルパーを削除",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "WiFi Sniffer を終了",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 98
+        }
+      }
+    ]
+  },
+  "version": 1
+}

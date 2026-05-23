@@ -224,15 +224,15 @@ class SnifferViewModel {
     
     private func handleXPCError() {
         Task { @MainActor in
-            // 意図的な停止中（isProcessing == true かつ isCapturing == true の状態から停止）
-            // の場合は、切断メッセージを表示しないようにする
-            if self.isCapturing {
+            // 意図的な停止中、またはWireshark経由での停止（SIGPIPE等によるヘルパー終了）
+            // の場合は、切断メッセージを表示せず、静かに状態を戻す
+            if self.isCapturing && !self.isProcessing {
                 self.statusMessage = String(localized: "ヘルパーツールとの通信が切断されました")
             }
             self.isCapturing = false
             self.isProcessing = false
             self.connection = nil
-            self.terminateWireshark()
+            // Wiresharkが動いている場合は、ここでは終了させない（Wireshark側の停止操作を尊重する）
         }
     }
     

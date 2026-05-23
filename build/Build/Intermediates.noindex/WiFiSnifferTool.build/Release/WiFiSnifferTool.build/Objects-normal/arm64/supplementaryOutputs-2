@@ -1,0 +1,12 @@
+{
+  "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/Shared/WiFiCaptureProtocol.swift" : {
+    "abi-baseline-json" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool.abi.json",
+    "const-values" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool-primary.swiftconstvalues",
+    "dependencies" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool-primary.d",
+    "diagnostics" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool-primary.dia",
+    "objc-header" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool-Swift.h",
+    "swiftdoc" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool.swiftdoc",
+    "swiftmodule" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool.swiftmodule",
+    "swiftsourceinfo" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool.swiftsourceinfo"
+  }
+}

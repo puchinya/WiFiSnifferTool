@@ -1,0 +1,36 @@
+{
+  "" : {
+    "const-values" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool-primary.swiftconstvalues",
+    "dependencies" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool-primary.d",
+    "diagnostics" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool-primary.dia",
+    "emit-module-dependencies" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool-primary-emit-module.d",
+    "emit-module-diagnostics" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool-primary-emit-module.dia",
+    "pch" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool-primary-Bridging-header.pch",
+    "swift-dependencies" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferTool-primary.swiftdeps"
+  },
+  "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/Shared/WiFiCaptureProtocol.swift" : {
+    "index-unit-output-path" : "/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiCaptureProtocol.o",
+    "llvm-bc" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiCaptureProtocol.bc",
+    "object" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiCaptureProtocol.o"
+  },
+  "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/WiFiSnifferTool/ViewModels/SnifferViewModel.swift" : {
+    "index-unit-output-path" : "/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/SnifferViewModel.o",
+    "llvm-bc" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/SnifferViewModel.bc",
+    "object" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/SnifferViewModel.o"
+  },
+  "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/WiFiSnifferTool/Views/MainView.swift" : {
+    "index-unit-output-path" : "/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/MainView.o",
+    "llvm-bc" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/MainView.bc",
+    "object" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/MainView.o"
+  },
+  "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/WiFiSnifferTool/WiFiSnifferToolApp.swift" : {
+    "index-unit-output-path" : "/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferToolApp.o",
+    "llvm-bc" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferToolApp.bc",
+    "object" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/WiFiSnifferToolApp.o"
+  },
+  "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/nabeshimamasataka/Documents/git/WiFiSnifferTool/build/Build/Intermediates.noindex/WiFiSnifferTool.build/Release/WiFiSnifferTool.build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  }
+}

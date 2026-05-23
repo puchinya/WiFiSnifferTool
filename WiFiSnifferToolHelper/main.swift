@@ -49,7 +49,11 @@ print("WiFiSnifferToolHelper: 特権デーモンを起動中...")
 // 2. Machサービス名を使ってXPCリスナーを初期化
 let listener = NSXPCListener(machServiceName: helperMachServiceName)
 
-// 3. デリゲートをセットして、接続待ち受けを開始
+// 3. 【重要】SIGPIPEを無視するように設定
+// Wireshark（読み取り側）がパイプを閉じたときに、書き込み側のヘルパーがクラッシュするのを防ぎます。
+signal(SIGPIPE, SIG_IGN)
+
+// 4. デリゲートをセットして、接続待ち受けを開始
 let delegate = XcodeHelperDelegate()
 listener.delegate = delegate
 listener.resume()
