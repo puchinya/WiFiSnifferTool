@@ -130,6 +130,22 @@ class SnifferViewModel {
         }
     }
     
+    // ヘルパーのアンインストール
+    func uninstallHelper() {
+        if #available(macOS 13.0, *) {
+            let service = SMAppService.daemon(plistName: "jp.daradara.WiFiSnifferToolHelper.plist")
+            do {
+                try service.unregister()
+                statusMessage = "ヘルパーをアンインストールしました"
+                requiresApproval = false
+                print("ヘルパーの登録を解除しました")
+            } catch {
+                print("ヘルパーの解除に失敗しました: \(error)")
+                statusMessage = "アンインストールに失敗しました"
+            }
+        }
+    }
+    
     func fetchInterfaces() {
         let client = CWWiFiClient.shared()
         availableInterfaces = client.interfaces()?.compactMap { $0.interfaceName } ?? ["en0"]

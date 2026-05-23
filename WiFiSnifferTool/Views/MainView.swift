@@ -77,9 +77,20 @@ struct MainView: View {
             
             Divider()
             
-            // アプリ終了ボタン（トレイ型アプリに必須の脱出経路）
+            // アプリ終了・管理ボタン
             HStack {
+                Button(action: {
+                    viewModel.uninstallHelper()
+                }) {
+                    Text("ヘルパーを削除")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                }
+                .buttonStyle(.plain)
+                .disabled(viewModel.isCapturing)
+                
                 Spacer()
+                
                 Button(action: {
                     NSApplication.shared.terminate(nil)
                 }) {
@@ -87,7 +98,7 @@ struct MainView: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                .buttonStyle(.plain) // 悪目立ちしないシンプルなテキストボタンに
+                .buttonStyle(.plain)
             }
             .padding(.horizontal)
             .padding(.bottom, 5)
