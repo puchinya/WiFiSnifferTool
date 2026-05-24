@@ -1,3 +1,6 @@
 .DS_Store
 *.dmg
 /build
+default.profraw
+run_output.log
+/.antigravitycli
