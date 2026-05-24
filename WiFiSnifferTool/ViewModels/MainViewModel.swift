@@ -1,11 +1,18 @@
+//
+//  MainViewModel.swift
+//  WiFiSnifferTool
+//
+//  Created by Masataka Nabeshima on 2026/05/20.
+//
+
 import SwiftUI
 import CoreWLAN
-import ServiceManagement
+@preconcurrency import ServiceManagement
 import Combine
 
 @MainActor
 @Observable
-class SnifferViewModel {
+class MainViewModel {
     var isCapturing: Bool = false
     var isProcessing: Bool = false
     var statusMessage: String = "待機中"
@@ -99,10 +106,13 @@ class SnifferViewModel {
             
             // 定期的に状態を確認して、ユーザーが設定で許可したのを検知する
             Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] timer in
+                guard let self = self else { return }
                 if service.status == .enabled {
-                    self?.requiresApproval = false
-                    self?.statusMessage = String(localized: "待機中")
                     timer.invalidate()
+                    Task { @MainActor in
+                        self.requiresApproval = false
+                        self.statusMessage = String(localized: "待機中")
+                    }
                 }
             }
 

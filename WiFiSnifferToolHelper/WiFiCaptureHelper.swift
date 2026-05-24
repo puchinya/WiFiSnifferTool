@@ -2,7 +2,7 @@
 //  WiFiCaptureHelper.swift
 //  WiFiSnifferTool
 //
-//  Created by 鍋島雅貴 on 2026/05/20.
+//  Created by Masataka Nabeshima on 2026/05/20.
 //
 
 import Foundation
@@ -144,7 +144,7 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
     // 内部のキャプチャ処理ループ
     private func runCaptureEngine(interface: String, pipePath: String) {
         // 名前付きパイプを作成
-        pipePath.withCString { unlink($0) }
+        _ = pipePath.withCString { unlink($0) }
         let mkfifoResult = pipePath.withCString { mkfifo($0, 0o666) }
         if mkfifoResult != 0 {
             print("警告: 名前付きパイプの作成に失敗しました (すでに存在する可能性があります)")
@@ -162,9 +162,9 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
         self.pcapHandle = handle
         
         // モニターモードを有効にする (これが Wi-Fi スニッフィングの肝)
-        pcap_set_rfmon(handle, 1)
-        pcap_set_snaplen(handle, 65535)
-        pcap_set_timeout(handle, 100) // 100msごとにタイムアウトしてループを確認
+        _ = pcap_set_rfmon(handle, 1)
+        _ = pcap_set_snaplen(handle, 65535)
+        _ = pcap_set_timeout(handle, 100) // 100msごとにタイムアウトしてループを確認
         
         let status = pcap_activate(handle)
         if status != 0 {
@@ -201,7 +201,7 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
             if res == 1, let header = pktHeader, let data = pktData {
                 // パケット取得成功、パイプにダンプ
                 pcap_dump(dumpHandle, header, data)
-                pcap_dump_flush(dumpHandle)
+                _ = pcap_dump_flush(dumpHandle)
             } else if res == 0 {
                 // タイムアウト
                 continue

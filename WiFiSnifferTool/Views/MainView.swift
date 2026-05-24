@@ -1,7 +1,14 @@
+//
+//  MainView.swift
+//  WiFiSnifferTool
+//
+//  Created by Masataka Nabeshima on 2026/05/20.
+//
+
 import SwiftUI
 
 struct MainView: View {
-    @State private var viewModel = SnifferViewModel()
+    @State private var viewModel = MainViewModel()
     
     var body: some View {
         VStack(spacing: 15) {

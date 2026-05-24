@@ -2,7 +2,7 @@
 //  WiFiSnifferToolUITests.swift
 //  WiFiSnifferToolUITests
 //
-//  Created by 鍋島雅貴 on 2026/05/20.
+//  Created by Masataka Nabeshima on 2026/05/20.
 //
 
 import XCTest
