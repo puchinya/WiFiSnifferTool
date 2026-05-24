@@ -83,6 +83,17 @@ struct MainView: View {
                 .disabled(viewModel.isProcessing)
             }
             
+            // 周辺AP表示ボタン
+            Button(action: {
+                APListWindowController.shared.show()
+            }) {
+                Label("周辺のAPを表示", systemImage: "wifi")
+                    .fontWeight(.semibold)
+                    .frame(width: 250, height: 24)
+            }
+            .buttonStyle(.bordered)
+            .tint(.accentColor)
+            
             Divider()
             
             // アプリ終了・管理ボタン
@@ -116,7 +127,7 @@ struct MainView: View {
                 .frame(maxWidth: .infinity, alignment: .center)
                 .padding(.bottom, 2)
         }
-        .frame(width: 350, height: 360)
+        .frame(width: 350, height: 410)
         .padding()
     }
 }
