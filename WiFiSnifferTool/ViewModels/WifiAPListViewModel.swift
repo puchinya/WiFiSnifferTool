@@ -92,7 +92,11 @@ class WifiAPListViewModel: NSObject, CLLocationManagerDelegate {
     func scan() {
         guard !isScanning else { return }
         isScanning = true
-        errorMessage = nil
+        
+        checkLocationAuthorization()
+        if locationStatus != .denied && locationStatus != .restricted {
+            errorMessage = nil
+        }
         
         // 1. CWWiFiClient の取得およびインターフェース取得は MainActor (メインスレッド) で行う
         guard let interface = CWWiFiClient.shared().interface() else {
