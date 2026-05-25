@@ -288,6 +288,14 @@ class MainViewModel {
         isProcessing = true
         statusMessage = String(localized: "キャプチャを開始しています...")
         
+        // 開始前の設定パラメータのログ出力 (MainViewModel側)
+        print("--- WiFi Sniffer App: キャプチャ開始リクエスト ---")
+        print("  - 対象インターフェース: \(selectedInterface)")
+        print("  - 要求チャンネル: \(selectedChannel)")
+        print("  - 要求チャンネル幅: \(selectedChannelWidth == 0 ? "自動" : "\(selectedChannelWidth) MHz")")
+        print("  - 出力パイプパス: \(outputPipePath)")
+        print("--------------------------------------------------")
+        
         await withCheckedContinuation { continuation in
             helper.startCapture(onInterface: selectedInterface,
                                 channel: selectedChannel,
@@ -299,11 +307,21 @@ class MainViewModel {
                         self?.statusMessage = String(localized: "エラー: \(err)")
                         self?.isCapturing = false
                         self?.terminateWireshark()
+                        print("[ERROR] キャプチャ開始失敗: \(err)")
                     } else {
                         self?.isCapturing = true
                         let interface = self?.selectedInterface ?? ""
                         self?.statusMessage = String(localized: "キャプチャ中 (\(interface))")
                         self?.launchWireshark()
+                        
+                        // 成功時の確定設定パラメータのログ出力 (MainViewModel側)
+                        let bandStr = (self?.selectedChannel ?? 0) <= 14 ? "2.4 GHz" : "5 GHz"
+                        print("--- WiFi Sniffer App: キャプチャ開始成功 ---")
+                        print("  - インターフェース: \(interface)")
+                        print("  - チャンネル: \(self?.selectedChannel ?? 0)")
+                        print("  - 周波数帯域 (Band): \(bandStr)")
+                        print("  - チャンネル幅: \(self?.selectedChannelWidth ?? 20) MHz")
+                        print("--------------------------------------------")
                     }
                     continuation.resume()
                 }

@@ -55,6 +55,7 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
     private var currentInterface: String?
     private var currentPipePath: String?
     private var pcapHandle: OpaquePointer?
+    private var activeInterface: CWInterface? // 同一インスタンスを一貫保持するために追加
     
     // 1. キャプチャ開始
     func startCapture(onInterface interfaceName: String, channel: Int, width: Int,
@@ -73,15 +74,31 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
             print("ヘルパー側で名前付きパイプを新規作成しました: \(outputNamedPipe)")
         }
         
-        // 【最重要】pcap_activateの前にアソシエーションを切断（disassociate）する
-        // 既存の接続がある状態では、モニターモード（rfmon）の有効化が無視または拒否されるため
-        if let interface = CWWiFiClient.shared().interface(withName: interfaceName) {
-            interface.disassociate()
-            print("モニターモード有効化の準備のため、現在のネットワーク接続を解除（disassociate）しました。")
-            Thread.sleep(forTimeInterval: 0.2) // ハードウェア切断完了のために僅かなウェイトを挿入
+        // 【最重要 1】一貫操作のため、同一の CWInterface インスタンスを取得
+        guard let interface = CWWiFiClient.shared().interface(withName: interfaceName) else {
+            completion("エラー: インターフェースが見つかりません: \(interfaceName)")
+            return
+        }
+        self.activeInterface = interface
+        
+        // 【究極シーケンス 1】pcap_activate の前にアソシエーションを切断し、1回目のチャンネル設定を行う
+        // 接続状態でのアクティベート拒否を防ぎつつ、初期周波数をアライメント
+        interface.disassociate()
+        print("[1] アソシエーションを解除（disassociate）しました。")
+        Thread.sleep(forTimeInterval: 0.2) // 切断ステート反映のためのウェイト
+        
+        do {
+            try setChannel(interface: interface, channel: channel, width: width)
+            print("[2] アクティベート前の初期チャンネル設定（1回目）に成功しました。")
+        } catch {
+            print("警告: アクティベート前のチャンネル設定に失敗しました: \(error.localizedDescription)")
+            // 後続のアクティベート後の設定でカバーできる可能性があるため続行
         }
         
-        // pcap の作成とモニターモードの有効化を同期的に実行
+        // チャンネル切り替え後のハードウェア安定化を待つため、しっかりとスリープ（500ms）
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // 【究極シーケンス 2】pcap の作成とモニターモードの有効化
         let errbuf = UnsafeMutablePointer<Int8>.allocate(capacity: 256)
         defer { errbuf.deallocate() }
         
@@ -102,18 +119,55 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
             completion("pcap_activate に失敗しました (ステータス: \(status))")
             return
         }
+        print("[3] pcapモニターモードのアクティベートが成功しました。")
         
-        // モニターモードが有効化された【後】にチャンネルを設定する
+        // モニターモード移行のハードウェア受信状態移行を待つ（300ms）
+        Thread.sleep(forTimeInterval: 0.3)
+        
+        // 【究極シーケンス 3】モニターモード状態で、再度念押しのチャンネル設定（2回目）を行う
+        // アクティベート時の暗黙のチャンネルリセットや無視を完全に上書き
         do {
-            try setChannel(interfaceName: interfaceName, channel: channel, width: width)
+            try setChannel(interface: interface, channel: channel, width: width)
+            print("[4] アクティベート後の念押しチャンネル設定（2回目）に成功しました。")
         } catch {
             pcap_close(handle)
             completion("チャンネル設定に失敗しました: \(error.localizedDescription)")
             return
         }
         
-        // ハードウェアの周波数チューニング安定化のため 0.5秒 (500ms) 待機
+        // チャンネルロック完了とハードウェアチューニングの安定化のためスリープ（500ms）
         Thread.sleep(forTimeInterval: 0.5)
+        
+        // 【究極シーケンス 4】反映確認＆リトライループ (最大3回リトライ)
+        var isVerified = false
+        for attempt in 1...3 {
+            if let currentWlanChannel = interface.wlanChannel(), currentWlanChannel.channelNumber == channel {
+                isVerified = true
+                let currentWidthStr: String
+                switch currentWlanChannel.channelWidth {
+                case .width20MHz: currentWidthStr = "20 MHz"
+                case .width40MHz: currentWidthStr = "40 MHz"
+                case .width80MHz: currentWidthStr = "80 MHz"
+                case .width160MHz: currentWidthStr = "160 MHz"
+                default: currentWidthStr = "Unknown"
+                }
+                print("--- [成功] 物理チャンネルの反映を確認 ---")
+                print("  - 試行回数: \(attempt) 回目")
+                print("  - 確定物理チャンネル: \(currentWlanChannel.channelNumber)")
+                print("  - 確定物理チャンネル幅: \(currentWidthStr)")
+                print("-----------------------------------------")
+                break
+            } else {
+                print("警告: チャンネル設定がまだ反映されていません (試行: \(attempt) 回目)。再設定を行います。")
+                // 再適用を試行
+                _ = try? setChannel(interface: interface, channel: channel, width: width)
+                Thread.sleep(forTimeInterval: 0.2) // リトライ時の適用ウェイト
+            }
+        }
+        
+        if !isVerified {
+            print("警告: 最大回数リトライしましたが、システム側での最終反映が確認できませんでした。スニッフは続行します。")
+        }
         
         // Radiotapヘッダを確実に取得するため、データリンク層を設定
         let DLT_IEEE802_11_RADIO: Int32 = 127
@@ -134,11 +188,7 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
         completion(nil)
     }
     
-    private func setChannel(interfaceName: String, channel: Int, width: Int) throws {
-        guard let interface = CWWiFiClient.shared().interface(withName: interfaceName) else {
-            throw NSError(domain: "WiFiCaptureHelper", code: 1, userInfo: [NSLocalizedDescriptionKey: "インターフェースが見つかりません: \(interfaceName)"])
-        }
-        
+    private func setChannel(interface: CWInterface, channel: Int, width: Int) throws {
         // 利用可能なチャンネルを検索
         guard let supportedChannels = interface.supportedWLANChannels() else {
             throw NSError(domain: "WiFiCaptureHelper", code: 2, userInfo: [NSLocalizedDescriptionKey: "サポートされているチャンネルを取得できません。"])
@@ -153,11 +203,39 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
         default: targetWidth = .widthUnknown
         }
         
-        guard let targetChannel = supportedChannels.first(where: { $0.channelNumber == channel && (width == 0 || $0.channelWidth == targetWidth) }) else {
-            throw NSError(domain: "WiFiCaptureHelper", code: 3, userInfo: [NSLocalizedDescriptionKey: "指定されたチャンネル(\(channel))または幅(\(width)MHz)はサポートされていません。"])
+        // チャンネル番号から周波数帯（Band）を自動判定 (14以下は2.4GHz、それ以上は5GHz)
+        let expectedBand: CWChannelBand = channel <= 14 ? .band2GHz : .band5GHz
+        
+        // 1. 指定のチャンネル番号、帯域(Band)、および幅(Width)がすべて一致するものを探す
+        var targetChannel = supportedChannels.first(where: {
+            $0.channelNumber == channel &&
+            $0.channelBand == expectedBand &&
+            (width == 0 || $0.channelWidth == targetWidth)
+        })
+        
+        // 2. 見つからない場合は、指定のチャンネル番号と帯域(Band)が一致するもので、幅は不問として最初の候補を選ぶ (フォールバック)
+        if targetChannel == nil {
+            targetChannel = supportedChannels.first(where: {
+                $0.channelNumber == channel &&
+                $0.channelBand == expectedBand
+            })
+            if let tc = targetChannel {
+                print("フォールバック: チャンネル \(channel) の指定幅(\(width)MHz)が見つからないため、幅 \(tc.channelWidth) で代替します。")
+            }
         }
         
-        try interface.setWLANChannel(targetChannel)
+        // 3. それでも見つからない場合は、幅も帯域も不問でチャンネル番号だけで探す (最終フォールバック)
+        if targetChannel == nil {
+            targetChannel = supportedChannels.first(where: {
+                $0.channelNumber == channel
+            })
+        }
+        
+        guard let finalChannel = targetChannel else {
+            throw NSError(domain: "WiFiCaptureHelper", code: 3, userInfo: [NSLocalizedDescriptionKey: "指定されたチャンネル(\(channel))はサポートされていません。"])
+        }
+        
+        try interface.setWLANChannel(finalChannel)
     }
     
     // 2. キャプチャ停止
