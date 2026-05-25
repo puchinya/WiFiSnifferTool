@@ -169,7 +169,7 @@ struct WifiAPListView: View {
                 ScrollView {
                     LazyVStack(spacing: 10) {
                         ForEach(viewModel.filteredAccessPoints) { ap in
-                            AccessPointRow(ap: ap, isProcessing: mainViewModel.isProcessing) { selectedAP in
+                            AccessPointRow(ap: ap, isProcessing: mainViewModel.isProcessing || mainViewModel.requiresApproval) { selectedAP in
                                 handleCaptureRequest(for: selectedAP)
                             }
                         }

@@ -20,6 +20,9 @@ class MainViewModel {
     var statusMessage: String = "待機中"
     var requiresApproval: Bool = false
     
+    // ヘルパーステータス監視用タイマー
+    private var helperStatusTimer: Timer?
+    
     // ネットワーク設定
     var selectedInterface: String = "en0" {
         didSet {
@@ -58,7 +61,7 @@ class MainViewModel {
     private var cachedWLANChannels: [CWChannel] = []
     
     init() {
-        installHelperIfNeeded()
+        setupHelperStatusMonitor()
         fetchInterfaces()
         setupAppLifecycleObserver()
     }
@@ -66,9 +69,7 @@ class MainViewModel {
     // インスタンス破棄時（画面遷移やViewModel解放時）のライフサイクル
     deinit {
         // deinitはnonisolatedなため、MainActor孤立プロパティに直接アクセスできません。
-        // ここでは安全のため、フラグチェックのみを行い、実際のリソース解放は
-        // setupAppLifecycleObserver で管理される willTerminateNotification 等に任せます。
-        // ※ 完全にアプリが落ちる直前のクリーンアップは setupAppLifecycleObserver で行われます。
+        // リソース解放は executeImmediateCleanup() 等で行われます。
     }
     
     // アプリ全体の終了イベント（Cmd + Qなど）を監視する設定
@@ -85,6 +86,10 @@ class MainViewModel {
     
     // アプリ終了時に非同期コールバックを待たずに即時リソースを解放するメソッド
     func executeImmediateCleanup() {
+        // タイマーの無効化
+        helperStatusTimer?.invalidate()
+        helperStatusTimer = nil
+        
         // 1. Wiresharkプロセスの強制終了
         if let process = wiresharkProcess, process.isRunning {
             process.terminationHandler = nil // ループを防ぐためハンドラをクリア
@@ -102,38 +107,55 @@ class MainViewModel {
         connection = nil
     }
     
-    private func installHelperIfNeeded() {
+    private func setupHelperStatusMonitor() {
         if #available(macOS 13.0, *) {
             let service = SMAppService.daemon(plistName: "jp.daradara.WiFiSnifferToolHelper.plist")
             
-            // 定期的に状態を確認して、ユーザーが設定で許可したのを検知する
-            Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] timer in
-                guard let self = self else { return }
-                if service.status == .enabled {
-                    timer.invalidate()
-                    Task { @MainActor in
-                        self.requiresApproval = false
-                        self.statusMessage = String(localized: "待機中")
-                    }
+            // 初回チェック
+            checkHelperStatus(service)
+            
+            // 常時チェックするタイマーを設定（2.0秒ごと）
+            helperStatusTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+                Task { @MainActor [weak self] in
+                    guard let self = self else { return }
+                    self.checkHelperStatus(service)
                 }
             }
-
-            if service.status == .requiresApproval {
-                requiresApproval = true
-                statusMessage = String(localized: "システム設定でヘルパーの実行を許可してください")
-                return
+        }
+    }
+    
+    @MainActor
+    private func checkHelperStatus(_ service: SMAppService) {
+        let status = service.status
+        if status == .enabled {
+            if self.requiresApproval {
+                self.requiresApproval = false
+                self.statusMessage = String(localized: "待機中")
             }
-            if service.status != .enabled {
-                do {
-                    try service.register()
-                    print("ヘルパーを登録しました")
-                } catch {
-                    print("ヘルパーの登録に失敗しました: \(error)")
-                    statusMessage = String(localized: "ヘルパーツールのインストールに失敗しました")
+        } else if status == .requiresApproval {
+            if !self.requiresApproval {
+                self.requiresApproval = true
+                self.statusMessage = String(localized: "システム設定でヘルパーの実行を許可してください")
+                
+                // 実行中に権限が無効化された場合はキャプチャを強制停止
+                if self.isCapturing {
+                    self.executeImmediateCleanup()
+                    self.isCapturing = false
+                    self.isProcessing = false
                 }
-            } else {
-                print("ヘルパーは既に登録されています")
-                requiresApproval = false
+            }
+        } else {
+            // .notRegistered など未登録状態
+            self.requiresApproval = true
+            self.statusMessage = String(localized: "ヘルパーツールが未登録です。登録を試みています...")
+            
+            // 自動登録を試みる
+            do {
+                try service.register()
+                print("ヘルパーの登録を試みました")
+            } catch {
+                print("ヘルパーの登録に失敗しました: \(error)")
+                self.statusMessage = String(localized: "ヘルパーツールのインストールに失敗しました")
             }
         }
     }

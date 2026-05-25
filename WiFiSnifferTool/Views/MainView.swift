@@ -82,7 +82,7 @@ struct MainView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .tint(viewModel.isCapturing ? .red : .blue)
-                .disabled(viewModel.isProcessing)
+                .disabled(viewModel.isProcessing || (!viewModel.isCapturing && viewModel.requiresApproval))
             }
             
             // 周辺AP表示ボタン
