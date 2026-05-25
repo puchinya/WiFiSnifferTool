@@ -95,25 +95,28 @@ struct WifiAPGraphView: View {
         Chart {
             ForEach(filteredAccessPoints) { ap in
                 let points = generateDomePoints(for: ap)
+                let apColor = colorForSSID(ap.ssid)
                 
                 // ドームの中身を半透明で塗りつぶす (AreaMark)
                 ForEach(points) { point in
                     AreaMark(
                         x: .value("Channel", point.channel),
                         yStart: .value("Min RSSI", -100.0),
-                        yEnd: .value("RSSI (dBm)", point.rssi)
+                        yEnd: .value("RSSI (dBm)", point.rssi),
+                        series: .value("AP", ap.id) // seriesによるグループ化で個別色付けを可能に
                     )
+                    .foregroundStyle(apColor.opacity(0.2))
                 }
-                .foregroundStyle(colorForSSID(ap.ssid, bssid: ap.bssid).opacity(0.2))
                 
                 // なめらかな円ドーム境界線を描画 (LineMark)
                 ForEach(points) { point in
                     LineMark(
                         x: .value("Channel", point.channel),
-                        y: .value("RSSI (dBm)", point.rssi)
+                        y: .value("RSSI (dBm)", point.rssi),
+                        series: .value("AP", ap.id) // seriesによるグループ化で個別色付けを可能に
                     )
+                    .foregroundStyle(apColor)
                 }
-                .foregroundStyle(colorForSSID(ap.ssid, bssid: ap.bssid))
                 .lineStyle(StrokeStyle(lineWidth: 2.5))
             }
             
@@ -127,7 +130,7 @@ struct WifiAPGraphView: View {
                 .annotation(position: .top, alignment: .center, spacing: 4) {
                     Text(peak.ssid)
                         .font(.system(size: 9, weight: .bold))
-                        .foregroundColor(colorForSSID(peak.ssid, bssid: peak.bssid))
+                        .foregroundColor(colorForSSID(peak.ssid))
                         .padding(.horizontal, 5)
                         .padding(.vertical, 2)
                         .background(Color(NSColor.controlBackgroundColor).opacity(0.85))
@@ -239,19 +242,30 @@ struct WifiAPGraphView: View {
         return points
     }
     
-    // SSID と BSSID から一意なパステル調カラーを決定論的に生成
-    private func colorForSSID(_ ssid: String, bssid: String) -> Color {
-        let combinedString = ssid + bssid
-        // FNV-1a 32-bit ハッシュを使用して決定論的なハッシュ値を生成（String.hashValueのプロセス間ランダム化による色変化を防ぐ）
+    // SSIDから一意かつ決定論的な美しいパステル調カラーを生成
+    private func colorForSSID(_ ssid: String) -> Color {
+        if ssid.isEmpty || ssid == "非公開ネットワーク" || ssid == "Hidden Network" {
+            return Color.gray.opacity(0.6)
+        }
+        
+        // FNV-1a ハッシュでSSIDを数値化
         var hash: UInt32 = 2166136261
-        for byte in combinedString.utf8 {
+        for byte in ssid.utf8 {
             hash = hash ^ UInt32(byte)
             hash = hash &* 16777619
         }
-        let h = Double(hash % 360) / 360.0
-        let s = 0.55 // パステル調のために彩度を適度に抑える
-        let v = 0.90 // 明るさを高めにする
-        return Color(hue: h, saturation: s, brightness: v)
+        
+        // 黄金比 (Golden Ratio conjugate) を用いたハッシュの分散手法
+        // 類似した文字列や連続する値であっても色相が非常に綺麗に均等分散します
+        let goldenRatioConjugate = 0.618033988749895
+        let rawHue = Double(hash) * goldenRatioConjugate
+        let hue = rawHue.truncatingRemainder(dividingBy: 1.0)
+        
+        // パステルカラーの調整: 彩度0.55、明度0.90で目に優しいパステル調に統一
+        let saturation = 0.55
+        let brightness = 0.90
+        
+        return Color(hue: hue, saturation: saturation, brightness: brightness)
     }
 }
 
