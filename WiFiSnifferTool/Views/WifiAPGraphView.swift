@@ -20,6 +20,8 @@ struct WifiAPGraphView: View {
         let channel: Double
         let rssi: Double
         let originalRSSI: Int
+        var labelPosition: AnnotationPosition = .top
+        var labelOffsetY: CGFloat = 0.0
     }
     
     var body: some View {
@@ -87,6 +89,120 @@ struct WifiAPGraphView: View {
                 originalRSSI: ap.rssi
             ))
         }
+        
+        // RSSIが高い順（降順）にソート。電波強度が強いAPのラベル配置を優先して好位置にするため。
+        points.sort { $0.rssi > $1.rssi }
+        
+        // 仮想スクリーン座標での衝突検出用矩形リスト
+        struct Rect {
+            let xMin: Double
+            let xMax: Double
+            let yMin: Double
+            let yMax: Double
+            
+            func intersects(_ other: Rect) -> Bool {
+                // 衝突判定（少しマージンを持たせるためにx, y方向ともに重なりをチェック）
+                return !(xMin > other.xMax || xMax < other.xMin || yMin > other.yMax || yMax < other.yMin)
+            }
+        }
+        
+        var placedRects: [Rect] = []
+        
+        // 配置候補のリスト（上側と下側に交互かつ外側に広げていくスロット）
+        struct LabelConfig {
+            let position: AnnotationPosition
+            let offsetY: CGFloat
+        }
+        
+        let candidates = [
+            LabelConfig(position: .top, offsetY: -2.0),
+            LabelConfig(position: .bottom, offsetY: 10.0),
+            LabelConfig(position: .top, offsetY: -18.0),
+            LabelConfig(position: .bottom, offsetY: 26.0),
+            LabelConfig(position: .top, offsetY: -34.0),
+            LabelConfig(position: .bottom, offsetY: 42.0),
+            LabelConfig(position: .top, offsetY: -50.0),
+            LabelConfig(position: .bottom, offsetY: 58.0),
+            LabelConfig(position: .top, offsetY: -66.0),
+            LabelConfig(position: .bottom, offsetY: 74.0),
+        ]
+        
+        // 各ポイントについて最適なスロットを決定
+        for idx in 0..<points.count {
+            let pt = points[idx]
+            
+            // 仮想スクリーンサイズ
+            let screenWidth = 800.0
+            let screenHeight = 300.0
+            
+            // X座標のピクセル換算
+            let xPx: Double
+            if selectedBand == "2.4 GHz" {
+                xPx = (pt.channel / 14.0) * screenWidth
+            } else {
+                xPx = ((pt.channel - 30.0) / 140.0) * screenWidth
+            }
+            
+            // Y座標のピクセル換算（下が -100, 上が -30）
+            let yPx = ((pt.rssi - (-100.0)) / 70.0) * screenHeight
+            
+            // ラベルのサイズ目安（フォントサイズ9ptでの文字幅 + パディング）
+            let labelWidth = max(55.0, Double(pt.ssid.count) * 5.5 + 14.0)
+            let labelHeight = 16.0
+            
+            var selectedConfig = candidates[0]
+            var foundFit = false
+            
+            // 候補スロットを順番に試して、既存の配置済み矩形と衝突しないものを探す
+            for config in candidates {
+                let rect: Rect
+                let offset = Double(config.offsetY)
+                
+                // X軸方向の範囲（中央揃え）
+                let xMin = xPx - labelWidth / 2.0
+                let xMax = xPx + labelWidth / 2.0
+                
+                // Y軸方向の範囲（SwiftUIのoffsetYは下がプラス、上がマイナス。グラフ座標は上がプラス）
+                if config.position == .top {
+                    let yMin = yPx - offset
+                    let yMax = yPx - offset + labelHeight
+                    rect = Rect(xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax)
+                } else {
+                    let yMin = yPx - offset - labelHeight
+                    let yMax = yPx - offset
+                    rect = Rect(xMin: xMin, xMax: xMax, yMin: yMin, yMax: yMax)
+                }
+                
+                // 衝突チェック
+                let hasCollision = placedRects.contains { $0.intersects(rect) }
+                if !hasCollision {
+                    selectedConfig = config
+                    placedRects.append(rect)
+                    foundFit = true
+                    break
+                }
+            }
+            
+            // 万が一全てのスロットで衝突した場合は、最後の候補を割り当てる
+            if !foundFit {
+                let config = candidates.last!
+                let offset = Double(config.offsetY)
+                let xMin = xPx - labelWidth / 2.0
+                let xMax = xPx + labelWidth / 2.0
+                let rect: Rect
+                if config.position == .top {
+                    rect = Rect(xMin: xMin, xMax: xMax, yMin: yPx - offset, yMax: yPx - offset + labelHeight)
+                } else {
+                    rect = Rect(xMin: xMin, xMax: xMax, yMin: yPx - offset - labelHeight, yMax: yPx - offset)
+                }
+                placedRects.append(rect)
+                selectedConfig = config
+            }
+            
+            points[idx].labelPosition = selectedConfig.position
+            points[idx].labelOffsetY = selectedConfig.offsetY
+        }
+        
         return points
     }
     
@@ -120,14 +236,14 @@ struct WifiAPGraphView: View {
                 .lineStyle(StrokeStyle(lineWidth: 2.5))
             }
             
-            // SSID名のアノテーションラベルを追加（頂点にのみ配置）
+            // SSID名のアノテーションラベルを追加（頂点にのみ配置、重なり回避を適用）
             ForEach(peakPoints) { peak in
                 PointMark(
                     x: .value("Channel", peak.channel),
                     y: .value("RSSI (dBm)", peak.rssi)
                 )
                 .symbolSize(0) // ドット自体は非表示にしてすっきりさせる
-                .annotation(position: .top, alignment: .center, spacing: 4) {
+                .annotation(position: peak.labelPosition, alignment: .center, spacing: 4) {
                     Text(peak.ssid)
                         .font(.system(size: 9, weight: .bold))
                         .foregroundColor(colorForSSID(peak.ssid))
@@ -136,6 +252,7 @@ struct WifiAPGraphView: View {
                         .background(Color(NSColor.controlBackgroundColor).opacity(0.85))
                         .cornerRadius(4)
                         .shadow(color: Color.black.opacity(0.1), radius: 1, x: 0, y: 1)
+                        .offset(y: peak.labelOffsetY) // 上下重なりを回避するための動的オフセット
                 }
             }
         }
