@@ -9,6 +9,7 @@ import SwiftUI
 import CoreWLAN
 import Combine
 import CoreLocation
+import UniformTypeIdentifiers
 
 @MainActor
 @Observable
@@ -235,6 +236,54 @@ class WifiAPListViewModel: NSObject, CLLocationManagerDelegate {
         }
         
         return result
+    }
+    
+    /// 表示中のアクセスポイント一覧をCSVとしてエクスポートします。
+    func exportToCSV() {
+        let aps = filteredAccessPoints
+        guard !aps.isEmpty else { return }
+        
+        let savePanel = NSSavePanel()
+        savePanel.allowedContentTypes = [.commaSeparatedText]
+        savePanel.nameFieldStringValue = "wifi_access_points_\(dateString()).csv"
+        savePanel.canCreateDirectories = true
+        savePanel.title = String(localized: "CSVファイルを保存")
+        
+        let response = savePanel.runModal()
+        if response == .OK {
+            guard let url = savePanel.url else { return }
+            
+            // CSVの生成
+            var csvText = "SSID,BSSID,RSSI (dBm),Band,Channel,Channel Width,Security\n"
+            for ap in aps {
+                let escapedSSID = escapeCSVField(ap.ssid)
+                let escapedBSSID = escapeCSVField(ap.bssid)
+                let escapedBand = escapeCSVField(ap.band)
+                let escapedWidth = escapeCSVField(ap.width)
+                let escapedSecurity = escapeCSVField(ap.security)
+                csvText += "\(escapedSSID),\(escapedBSSID),\(ap.rssi),\(escapedBand),\(ap.channel),\(escapedWidth),\(escapedSecurity)\n"
+            }
+            
+            do {
+                try csvText.write(to: url, atomically: true, encoding: .utf8)
+            } catch {
+                self.errorMessage = String(localized: "CSV保存失敗: ") + error.localizedDescription
+            }
+        }
+    }
+    
+    private func dateString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd_HHmmss"
+        return formatter.string(from: Date())
+    }
+    
+    private func escapeCSVField(_ field: String) -> String {
+        if field.contains(",") || field.contains("\"") || field.contains("\n") || field.contains("\r") {
+            let escaped = field.replacingOccurrences(of: "\"", with: "\"\"")
+            return "\"\(escaped)\""
+        }
+        return field
     }
     
     // 位置情報権限の更新通知を受けたとき

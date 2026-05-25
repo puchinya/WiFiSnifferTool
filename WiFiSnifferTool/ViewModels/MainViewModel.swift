@@ -319,15 +319,13 @@ class MainViewModel {
         process.executableURL = URL(fileURLWithPath: "/Applications/Wireshark.app/Contents/MacOS/Wireshark")
         process.arguments = ["-i", outputPipePath, "-k"]
         
-        // Wiresharkが終了したときのハンドラ
-        process.terminationHandler = { [weak self] _ in
+        process.terminationHandler = { _ in
             print("Wiresharkが終了しました")
-            // メインスレッドで安全に状態更新とキャプチャ停止処理を叩く
-            DispatchQueue.main.async {
-                if self?.isCapturing == true {
-                    Task { @MainActor in
-                        await self?.stopCapture()
-                    }
+            // メインアクターで安全に状態更新とキャプチャ停止処理を実行
+            Task { @MainActor in
+                let viewModel = MainViewModel.shared
+                if viewModel.isCapturing {
+                    await viewModel.stopCapture()
                 }
             }
         }

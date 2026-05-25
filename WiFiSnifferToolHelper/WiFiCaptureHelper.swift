@@ -64,21 +64,71 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
             return
         }
         
-        // チャンネル設定を試行
+        // パイプファイルをヘルパー側で同期的に再作成 (古いものがあれば削除して新規作成)
+        _ = outputNamedPipe.withCString { unlink($0) }
+        let mkfifoResult = outputNamedPipe.withCString { mkfifo($0, 0o666) }
+        if mkfifoResult != 0 {
+            print("警告: ヘルパー側での名前付きパイプ作成に失敗しました (すでに存在する可能性があります)")
+        } else {
+            print("ヘルパー側で名前付きパイプを新規作成しました: \(outputNamedPipe)")
+        }
+        
+        // 【最重要】pcap_activateの前にアソシエーションを切断（disassociate）する
+        // 既存の接続がある状態では、モニターモード（rfmon）の有効化が無視または拒否されるため
+        if let interface = CWWiFiClient.shared().interface(withName: interfaceName) {
+            interface.disassociate()
+            print("モニターモード有効化の準備のため、現在のネットワーク接続を解除（disassociate）しました。")
+            Thread.sleep(forTimeInterval: 0.2) // ハードウェア切断完了のために僅かなウェイトを挿入
+        }
+        
+        // pcap の作成とモニターモードの有効化を同期的に実行
+        let errbuf = UnsafeMutablePointer<Int8>.allocate(capacity: 256)
+        defer { errbuf.deallocate() }
+        
+        guard let handle = pcap_create(interfaceName, errbuf) else {
+            let errorMsg = String(cString: errbuf)
+            completion("pcap_create に失敗しました: \(errorMsg)")
+            return
+        }
+        
+        // モニターモードを有効にする (これが Wi-Fi スニッフィングの肝)
+        _ = pcap_set_rfmon(handle, 1)
+        _ = pcap_set_snaplen(handle, 65535)
+        _ = pcap_set_timeout(handle, 100) // 100msごとにタイムアウトしてループを確認
+        
+        let status = pcap_activate(handle)
+        if status != 0 {
+            pcap_close(handle)
+            completion("pcap_activate に失敗しました (ステータス: \(status))")
+            return
+        }
+        
+        // モニターモードが有効化された【後】にチャンネルを設定する
         do {
             try setChannel(interfaceName: interfaceName, channel: channel, width: width)
         } catch {
+            pcap_close(handle)
             completion("チャンネル設定に失敗しました: \(error.localizedDescription)")
             return
         }
         
+        // ハードウェアの周波数チューニング安定化のため 0.5秒 (500ms) 待機
+        Thread.sleep(forTimeInterval: 0.5)
+        
+        // Radiotapヘッダを確実に取得するため、データリンク層を設定
+        let DLT_IEEE802_11_RADIO: Int32 = 127
+        if pcap_set_datalink(handle, DLT_IEEE802_11_RADIO) != 0 {
+            print("警告: pcap_set_datalink で IEEE802_11_RADIO への設定に失敗しました")
+        }
+        
+        self.pcapHandle = handle
         isCapturing = true
         currentInterface = interfaceName
         currentPipePath = outputNamedPipe
         
-        // バックグラウンドスレッド等で pcap_open_live / pcap_loop などを実行
+        // バックグラウンドスレッドで pcap_next_ex によるダンプループを実行
         DispatchQueue.global(qos: .userInitiated).async {
-            self.runCaptureEngine(interface: interfaceName, pipePath: outputNamedPipe)
+            self.runCaptureEngine(handle: handle, pipePath: outputNamedPipe)
         }
         
         completion(nil)
@@ -88,9 +138,6 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
         guard let interface = CWWiFiClient.shared().interface(withName: interfaceName) else {
             throw NSError(domain: "WiFiCaptureHelper", code: 1, userInfo: [NSLocalizedDescriptionKey: "インターフェースが見つかりません: \(interfaceName)"])
         }
-        
-        // Apple Silicon等でモニターモードを正常に動作させるため、現在のネットワークから切断する
-        interface.disassociate()
         
         // 利用可能なチャンネルを検索
         guard let supportedChannels = interface.supportedWLANChannels() else {
@@ -142,49 +189,11 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
     }
     
     // 内部のキャプチャ処理ループ
-    private func runCaptureEngine(interface: String, pipePath: String) {
-        // 名前付きパイプを作成
-        _ = pipePath.withCString { unlink($0) }
-        let mkfifoResult = pipePath.withCString { mkfifo($0, 0o666) }
-        if mkfifoResult != 0 {
-            print("警告: 名前付きパイプの作成に失敗しました (すでに存在する可能性があります)")
-        }
-        
-        let errbuf = UnsafeMutablePointer<Int8>.allocate(capacity: 256)
-        defer { errbuf.deallocate() }
-        
-        guard let handle = pcap_create(interface, errbuf) else {
-            let errorMsg = String(cString: errbuf)
-            print("pcap_create に失敗しました: \(errorMsg)")
-            isCapturing = false
-            return
-        }
-        self.pcapHandle = handle
-        
-        // モニターモードを有効にする (これが Wi-Fi スニッフィングの肝)
-        _ = pcap_set_rfmon(handle, 1)
-        _ = pcap_set_snaplen(handle, 65535)
-        _ = pcap_set_timeout(handle, 100) // 100msごとにタイムアウトしてループを確認
-        
-        let status = pcap_activate(handle)
-        if status != 0 {
-            print("pcap_activate に失敗しました (ステータス: \(status))")
-            pcap_close(handle)
-            self.pcapHandle = nil
-            isCapturing = false
-            return
-        }
-        
-        // Apple Silicon等でRadiotapヘッダを確実に取得するため、データリンク層をIEEE802_11_RADIO (127) に設定
-        let DLT_IEEE802_11_RADIO: Int32 = 127
-        if pcap_set_datalink(handle, DLT_IEEE802_11_RADIO) != 0 {
-            print("警告: pcap_set_datalink で IEEE802_11_RADIO への設定に失敗しました")
-        }
-        
-        print("キャプチャエンジンが開始されました (Interface: \(interface))")
+    private func runCaptureEngine(handle: OpaquePointer, pipePath: String) {
+        print("キャプチャエンジンが開始されました")
         print("名前付きパイプ \(pipePath) の読み取りを待機中...")
         
-        // pcap_dump_openは読み取り側（Wiresharkやメインアプリ等）が開くまでブロックする可能性があります
+        // pcap_dump_openは読み取り側（Wireshark等）が開くまでブロックする可能性があります
         guard let dumpHandle = pipePath.withCString({ pcap_dump_open(handle, $0) }) else {
             print("pcap_dump_open に失敗しました。パイプが開けません。")
             pcap_close(handle)
@@ -192,6 +201,8 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
             isCapturing = false
             return
         }
+        
+        print("Wiresharkがパイプを開きました。キャプチャループを開始します。")
         
         var pktHeader: OpaquePointer?
         var pktData: UnsafePointer<UInt8>?

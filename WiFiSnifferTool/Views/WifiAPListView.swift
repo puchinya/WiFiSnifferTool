@@ -128,6 +128,15 @@ struct WifiAPListView: View {
             .labelsHidden()
             
             Button(action: {
+                viewModel.exportToCSV()
+            }) {
+                Label("CSV保存", systemImage: "square.and.arrow.down")
+                    .fontWeight(.medium)
+            }
+            .buttonStyle(.bordered)
+            .disabled(viewModel.filteredAccessPoints.isEmpty)
+            
+            Button(action: {
                 viewModel.scan()
             }) {
                 Label("今すぐスキャン", systemImage: "arrow.clockwise")
