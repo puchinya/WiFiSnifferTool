@@ -14,21 +14,29 @@ struct WifiAPListView: View {
     
     @State private var showingStopAlert = false
     @State private var targetAPForCapture: WifiAPListViewModel.AccessPoint?
+    @State private var selectedTab = 0 // 0: リスト表示, 1: グラフ表示
     
     var body: some View {
         VStack(spacing: 0) {
-            // ヘッダー部
+            // ヘッダー部（表示形式・今すぐスキャンボタンを内包）
             headerView
-            
-            // 検索・フィルター・ソートバー
-            filterBar
             
             Divider()
             
-            // アクセスポイント一覧
-            contentList
+            // 検索・フィルター・ソートバー (リスト表示のみ表示)
+            if selectedTab == 0 {
+                filterBar
+                Divider()
+            }
+            
+            // コンテンツ表示 (リストかグラフ)
+            if selectedTab == 0 {
+                contentList
+            } else {
+                WifiAPGraphView(accessPoints: viewModel.accessPoints)
+            }
         }
-        .frame(minWidth: 850, minHeight: 500)
+        .frame(minWidth: 850, minHeight: 500) // 画面が広くなったので最小高さを580から500に最適化
         .background(Color(NSColor.windowBackgroundColor))
         .onDisappear {
             viewModel.stopPeriodicScan()
@@ -78,34 +86,46 @@ struct WifiAPListView: View {
     
     // ヘッダービュー
     private var headerView: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text("周辺のWiFiアクセスポイント")
-                    .font(.title)
+                    .font(.headline)
                     .fontWeight(.bold)
                 
-                HStack(spacing: 12) {
+                HStack(spacing: 8) {
                     if viewModel.isScanning {
                         ProgressView()
                             .controlSize(.small)
-                        Text("周辺のWi-Fiをスキャン中...")
+                        Text("スキャン中...")
                             .foregroundColor(.secondary)
-                            .font(.subheadline)
+                            .font(.caption)
                     } else {
                         Text("見つかったAP: \(viewModel.filteredAccessPoints.count) 個")
                             .foregroundColor(.secondary)
-                            .font(.subheadline)
+                            .font(.caption)
                     }
                     
                     if let err = viewModel.errorMessage {
-                        Text("⚠️ \(err)")
+                        Text("⚠️")
                             .foregroundColor(.red)
-                            .font(.subheadline)
+                            .font(.caption)
+                            .help(err)
                     }
                 }
+                .frame(height: 16) // 高さを完全に固定して、ProgressView出現時の縦揺れを防ぐ！
             }
+            .frame(height: 38, alignment: .leading) // VStack全体の高さを完全に固定！
             
             Spacer()
+            
+            // 表示形式をヘッダーの同じ行に配置
+            Picker("表示形式", selection: $selectedTab) {
+                Label("リスト", systemImage: "list.bullet").tag(0)
+                Label("グラフ", systemImage: "chart.bar.xaxis").tag(1)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 180)
+            .labelsHidden()
             
             Button(action: {
                 viewModel.scan()
@@ -113,11 +133,11 @@ struct WifiAPListView: View {
                 Label("今すぐスキャン", systemImage: "arrow.clockwise")
                     .fontWeight(.medium)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.bordered)
             .disabled(viewModel.isScanning)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .frame(height: 56) // ヘッダー全体の高さを完全に固定（高さの変動を一切外に伝播させない）
         .background(Color(NSColor.controlBackgroundColor).opacity(0.5))
     }
     
