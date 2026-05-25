@@ -10,6 +10,10 @@ import CoreWLAN
 
 struct WifiAPListView: View {
     @State private var viewModel = WifiAPListViewModel()
+    @State private var mainViewModel = MainViewModel.shared
+    
+    @State private var showingStopAlert = false
+    @State private var targetAPForCapture: WifiAPListViewModel.AccessPoint?
     
     var body: some View {
         VStack(spacing: 0) {
@@ -24,10 +28,51 @@ struct WifiAPListView: View {
             // アクセスポイント一覧
             contentList
         }
-        .frame(minWidth: 800, minHeight: 500)
+        .frame(minWidth: 850, minHeight: 500)
         .background(Color(NSColor.windowBackgroundColor))
         .onDisappear {
             viewModel.stopPeriodicScan()
+        }
+        .alert("キャプチャの停止確認", isPresented: $showingStopAlert) {
+            Button("停止して開始", role: .destructive) {
+                if let ap = targetAPForCapture {
+                    targetAPForCapture = nil
+                    Task {
+                        await mainViewModel.stopCapture()
+                        startCapture(for: ap)
+                    }
+                }
+            }
+            Button("キャンセル", role: .cancel) {
+                targetAPForCapture = nil
+            }
+        } message: {
+            Text("現在すでにキャプチャが実行中です。実行中のキャプチャを停止して、このアクセスポイントで新しくキャプチャを開始しますか？")
+        }
+    }
+    
+    private func handleCaptureRequest(for ap: WifiAPListViewModel.AccessPoint) {
+        if mainViewModel.isCapturing {
+            targetAPForCapture = ap
+            showingStopAlert = true
+        } else {
+            startCapture(for: ap)
+        }
+    }
+    
+    private func startCapture(for ap: WifiAPListViewModel.AccessPoint) {
+        let channel = ap.channel
+        let widthStr = ap.width.replacingOccurrences(of: " MHz", with: "")
+        let width = Int(widthStr) ?? 20
+        
+        mainViewModel.selectedChannel = channel
+        mainViewModel.selectedChannelWidth = width
+        
+        Task {
+            await mainViewModel.startCapture()
+            if mainViewModel.isCapturing {
+                APListWindowController.shared.close()
+            }
         }
     }
     
@@ -124,7 +169,9 @@ struct WifiAPListView: View {
                 ScrollView {
                     LazyVStack(spacing: 10) {
                         ForEach(viewModel.filteredAccessPoints) { ap in
-                            AccessPointRow(ap: ap)
+                            AccessPointRow(ap: ap, isProcessing: mainViewModel.isProcessing) { selectedAP in
+                                handleCaptureRequest(for: selectedAP)
+                            }
                         }
                     }
                     .padding(20)
@@ -166,6 +213,8 @@ struct WifiAPListView: View {
 // 1つのアクセスポイントを表示する行ビュー
 struct AccessPointRow: View {
     let ap: WifiAPListViewModel.AccessPoint
+    let isProcessing: Bool
+    let onStartCapture: (WifiAPListViewModel.AccessPoint) -> Void
     
     var body: some View {
         HStack(spacing: 15) {
@@ -222,8 +271,19 @@ struct AccessPointRow: View {
             // 暗号設定 (Security)
             SecurityBadge(security: ap.security)
                 .fixedSize(horizontal: true, vertical: false)
-                .frame(width: 140, alignment: .trailing)
+                .frame(width: 120, alignment: .trailing)
                 .layoutPriority(1)
+            
+            // キャプチャ開始ボタン
+            Button(action: {
+                onStartCapture(ap)
+            }) {
+                Text("キャプチャ")
+                    .fontWeight(.bold)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.small)
+            .disabled(isProcessing)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

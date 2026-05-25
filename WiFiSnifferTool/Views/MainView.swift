@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct MainView: View {
-    @State private var viewModel = MainViewModel()
+    @State private var viewModel = MainViewModel.shared
     
     var body: some View {
         VStack(spacing: 15) {
@@ -68,10 +68,12 @@ struct MainView: View {
             // コントロールボタン
             HStack(spacing: 30) {
                 Button(action: {
-                    if viewModel.isCapturing {
-                        viewModel.stopCapture()
-                    } else {
-                        viewModel.startCapture()
+                    Task {
+                        if viewModel.isCapturing {
+                            await viewModel.stopCapture()
+                        } else {
+                            await viewModel.startCapture()
+                        }
                     }
                 }) {
                     Text(viewModel.isCapturing ? "停止" : "キャプチャ開始")
@@ -93,6 +95,7 @@ struct MainView: View {
             }
             .buttonStyle(.bordered)
             .tint(.accentColor)
+            .disabled(viewModel.isCapturing)
             
             Divider()
             

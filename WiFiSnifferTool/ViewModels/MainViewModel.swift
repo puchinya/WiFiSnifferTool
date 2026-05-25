@@ -13,6 +13,8 @@ import Combine
 @MainActor
 @Observable
 class MainViewModel {
+    static let shared = MainViewModel()
+    
     var isCapturing: Bool = false
     var isProcessing: Bool = false
     var statusMessage: String = "待機中"
@@ -82,7 +84,7 @@ class MainViewModel {
     }
     
     // アプリ終了時に非同期コールバックを待たずに即時リソースを解放するメソッド
-    private func executeImmediateCleanup() {
+    func executeImmediateCleanup() {
         // 1. Wiresharkプロセスの強制終了
         if let process = wiresharkProcess, process.isRunning {
             process.terminationHandler = nil // ループを防ぐためハンドラをクリア
@@ -253,7 +255,7 @@ class MainViewModel {
     }
     
     // キャプチャの開始
-    func startCapture() {
+    func startCapture() async {
         guard !isProcessing else { return }
         
         guard let helper = setupXPCConnection() else {
@@ -264,22 +266,24 @@ class MainViewModel {
         isProcessing = true
         statusMessage = String(localized: "キャプチャを開始しています...")
         
-        helper.startCapture(onInterface: selectedInterface,
-                            channel: selectedChannel,
-                            width: selectedChannelWidth,
-                            outputNamedPipe: outputPipePath) { [weak self] errorString in
-            // MainActor クラスなので DispatchQueue.main.async または Task { @MainActor } で戻す
-            DispatchQueue.main.async {
-                self?.isProcessing = false
-                if let err = errorString {
-                    self?.statusMessage = String(localized: "エラー: \(err)")
-                    self?.isCapturing = false
-                    self?.terminateWireshark()
-                } else {
-                    self?.isCapturing = true
-                    let interface = self?.selectedInterface ?? ""
-                    self?.statusMessage = String(localized: "キャプチャ中 (\(interface))")
-                    self?.launchWireshark()
+        await withCheckedContinuation { continuation in
+            helper.startCapture(onInterface: selectedInterface,
+                                channel: selectedChannel,
+                                width: selectedChannelWidth,
+                                outputNamedPipe: outputPipePath) { [weak self] errorString in
+                DispatchQueue.main.async {
+                    self?.isProcessing = false
+                    if let err = errorString {
+                        self?.statusMessage = String(localized: "エラー: \(err)")
+                        self?.isCapturing = false
+                        self?.terminateWireshark()
+                    } else {
+                        self?.isCapturing = true
+                        let interface = self?.selectedInterface ?? ""
+                        self?.statusMessage = String(localized: "キャプチャ中 (\(interface))")
+                        self?.launchWireshark()
+                    }
+                    continuation.resume()
                 }
             }
         }
@@ -299,7 +303,9 @@ class MainViewModel {
             // メインスレッドで安全に状態更新とキャプチャ停止処理を叩く
             DispatchQueue.main.async {
                 if self?.isCapturing == true {
-                    self?.stopCapture()
+                    Task { @MainActor in
+                        await self?.stopCapture()
+                    }
                 }
             }
         }
@@ -311,12 +317,14 @@ class MainViewModel {
         } catch {
             print("Wiresharkの起動に失敗しました: \(error.localizedDescription)")
             statusMessage = "Wiresharkの起動に失敗しました。パスを確認してください。"
-            stopCapture()
+            Task { @MainActor in
+                await stopCapture()
+            }
         }
     }
     
     // キャプチャの停止
-    func stopCapture() {
+    func stopCapture() async {
         guard !isProcessing else { return }
         
         statusMessage = String(localized: "停止中...")
@@ -330,25 +338,28 @@ class MainViewModel {
             return
         }
         
-        helper.stopCapture { [weak self] errorString in
-            DispatchQueue.main.async {
-                // 先に isCapturing を false にすることで、後の handleXPCError での
-                // メッセージ上書きを防ぐ
-                self?.isCapturing = false
-                self?.isProcessing = false
-                if let errorString = errorString {
-                    self?.statusMessage = String(localized: "エラー: \(errorString)")
-                } else {
-                    self?.statusMessage = String(localized: "待機中")
+        await withCheckedContinuation { continuation in
+            helper.stopCapture { [weak self] errorString in
+                DispatchQueue.main.async {
+                    // 先に isCapturing を false にすることで、後の handleXPCError での
+                    // メッセージ上書きを防ぐ
+                    self?.isCapturing = false
+                    self?.isProcessing = false
+                    if let errorString = errorString {
+                        self?.statusMessage = String(localized: "エラー: \(errorString)")
+                    } else {
+                        self?.statusMessage = String(localized: "待機中")
+                    }
+                    self?.terminateWireshark()
+                    continuation.resume()
                 }
-                self?.terminateWireshark()
             }
         }
     }
     
     private func terminateWireshark() {
         if let process = wiresharkProcess, process.isRunning {
-            process.terminationHandler = nil // 重複トリガーを防ぐためnilを入れる
+            process.terminationHandler = nil // 重重複トリガーを防ぐためnilを入れる
             process.terminate()
         }
         wiresharkProcess = nil

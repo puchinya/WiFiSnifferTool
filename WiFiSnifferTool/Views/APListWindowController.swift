@@ -44,6 +44,10 @@ class APListWindowController: NSObject, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
     
+    func close() {
+        window?.close()
+    }
+    
     // ウィンドウが閉じられる時のデリゲート
     func windowWillClose(_ notification: Notification) {
         // 参照を nil にしてメモリ解放 (ViewModel内のタイマー等も deinit されます)
