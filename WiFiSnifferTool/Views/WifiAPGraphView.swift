@@ -58,6 +58,7 @@ struct WifiAPGraphView: View {
                     chartView
                 }
             }
+            .frame(minHeight: 300, maxHeight: .infinity) // 高さを柔軟にしつつ最小限300pxを保証し、Chartsのレイアウトエラーを防止
             .background(Color(NSColor.controlBackgroundColor))
             .cornerRadius(12)
             .overlay(

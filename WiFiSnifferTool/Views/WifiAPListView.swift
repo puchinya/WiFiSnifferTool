@@ -112,14 +112,13 @@ struct WifiAPListView: View {
                             .help(err)
                     }
                 }
-                .frame(height: 16) // 高さを完全に固定して、ProgressView出現時の縦揺れを防ぐ！
             }
-            .frame(height: 38, alignment: .leading) // VStack全体の高さを完全に固定！
+            .frame(alignment: .leading)
             
             Spacer()
             
             // 表示形式をヘッダーの同じ行に配置
-            Picker("表示形式", selection: $selectedTab) {
+            Picker("", selection: $selectedTab) {
                 Label("リスト", systemImage: "list.bullet").tag(0)
                 Label("グラフ", systemImage: "chart.bar.xaxis").tag(1)
             }

@@ -23,6 +23,7 @@ class WifiAPListViewModel: NSObject, CLLocationManagerDelegate {
         let channel: Int
         let width: String
         let security: String
+        var lostCount: Int = 0
         
         // 信号強度の段階 (0〜4)
         var signalLevel: Int {
@@ -198,7 +199,61 @@ class WifiAPListViewModel: NSObject, CLLocationManagerDelegate {
                     )
                 }
                 
-                self.accessPoints = aps
+                // 既存のアクセスポイントを bssid-ssid-channel の複合キーで引けるように辞書化
+                var existingAPs = [String: AccessPoint]()
+                for ap in self.accessPoints {
+                    let key = "\(ap.bssid)-\(ap.ssid)-\(ap.channel)"
+                    existingAPs[key] = ap
+                }
+                
+                var newAccessPoints: [AccessPoint] = []
+                var foundKeys = Set<String>()
+                
+                // 今回のスキャンで検出されたAPを処理
+                for var newAP in aps {
+                    let key = "\(newAP.bssid)-\(newAP.ssid)-\(newAP.channel)"
+                    
+                    // スキャン結果自体の重複（同一周波数・同一SSID）を防止
+                    if foundKeys.contains(key) {
+                        continue
+                    }
+                    
+                    if let existing = existingAPs[key] {
+                        // 既に存在する場合は、元の id を引き継ぎつつ最新の情報に更新（lostCount は 0 にリセット）
+                        let updatedAP = AccessPoint(
+                            id: existing.id,
+                            ssid: newAP.ssid,
+                            bssid: newAP.bssid,
+                            rssi: newAP.rssi,
+                            band: newAP.band,
+                            channel: newAP.channel,
+                            width: newAP.width,
+                            security: newAP.security,
+                            lostCount: 0
+                        )
+                        newAccessPoints.append(updatedAP)
+                    } else {
+                        // 新しく検出されたAP
+                        newAP.lostCount = 0
+                        newAccessPoints.append(newAP)
+                    }
+                    foundKeys.insert(key)
+                }
+                
+                // 今回検出されなかった既存のAPの連続失敗カウントを増やす（エイジング処理）
+                for ap in self.accessPoints {
+                    let key = "\(ap.bssid)-\(ap.ssid)-\(ap.channel)"
+                    if !foundKeys.contains(key) {
+                        var updatedAP = ap
+                        updatedAP.lostCount += 1
+                        // 3回連続で見つからなければ消去（2回目までは保持）
+                        if updatedAP.lostCount < 3 {
+                            newAccessPoints.append(updatedAP)
+                        }
+                    }
+                }
+                
+                self.accessPoints = newAccessPoints
                 self.isScanning = false
             } catch {
                 self.isScanning = false
