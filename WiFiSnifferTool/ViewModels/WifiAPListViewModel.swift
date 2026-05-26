@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 import CoreWLAN
 import Combine
 import CoreLocation
@@ -89,6 +90,23 @@ class WifiAPListViewModel: NSObject, CLLocationManagerDelegate {
     func stopPeriodicScan() {
         scanTimer?.invalidate()
         scanTimer = nil
+    }
+    
+    // 位置情報の設定画面を開く
+    func openLocationSettings() {
+        let urlStrings = [
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_LocationServices",
+            "x-apple.systempreferences:com.apple.Location-Settings.extension",
+            "x-apple.systempreferences:"
+        ]
+        
+        for urlStr in urlStrings {
+            if let url = URL(string: urlStr) {
+                if NSWorkspace.shared.open(url) {
+                    break
+                }
+            }
+        }
     }
     
     func scan() {

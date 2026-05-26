@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreWLAN
+import CoreLocation
 
 struct WifiAPListView: View {
     @State private var viewModel = WifiAPListViewModel()
@@ -22,6 +23,41 @@ struct WifiAPListView: View {
             headerView
             
             Divider()
+            
+            // 位置情報許可がない場合などのエラー警告バナー
+            if let err = viewModel.errorMessage {
+                HStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                        .font(.title2)
+                    
+                    Text(err)
+                        .font(.subheadline)
+                        .foregroundColor(.primary)
+                        .multilineTextAlignment(.leading)
+                        .lineLimit(nil)
+                    
+                    Spacer()
+                    
+                    if viewModel.locationStatus == .denied || viewModel.locationStatus == .restricted {
+                        Button(action: {
+                            viewModel.openLocationSettings()
+                        }) {
+                            Text("システム設定を開く")
+                                .fontWeight(.medium)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.orange)
+                    }
+                }
+                .padding(12)
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(8)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 8)
+                
+                Divider()
+            }
             
             // 検索・フィルター・ソートバー (リスト表示のみ表示)
             if selectedTab == 0 {
@@ -103,13 +139,6 @@ struct WifiAPListView: View {
                         Text("見つかったAP: \(viewModel.filteredAccessPoints.count) 個")
                             .foregroundColor(.secondary)
                             .font(.caption)
-                    }
-                    
-                    if let err = viewModel.errorMessage {
-                        Text("⚠️")
-                            .foregroundColor(.red)
-                            .font(.caption)
-                            .help(err)
                     }
                 }
             }

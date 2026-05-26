@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppKit
 import CoreWLAN
 @preconcurrency import ServiceManagement
 import Combine
@@ -163,7 +164,27 @@ class MainViewModel {
     // システム設定の「ログイン項目」を開く
     func openSystemSettings() {
         if #available(macOS 13.0, *) {
+            // 1. まず公式のSMAppService APIを呼び出す
             SMAppService.openSystemSettingsLoginItems()
+            
+            // 2. 環境によって無反応になる問題への対策として、ログイン項目のURLスキームを明示的に開く
+            if let url = URL(string: "x-apple.systempreferences:com.apple.LoginItems-Settings.extension") {
+                if !NSWorkspace.shared.open(url) {
+                    // 3. ログイン項目への直接リンクが失敗した場合は、システム設定のトップを開く
+                    if let fallbackUrl = URL(string: "x-apple.systempreferences:") {
+                        NSWorkspace.shared.open(fallbackUrl)
+                    }
+                }
+            }
+        } else {
+            // macOS 13未満向け
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preferences.users?LoginItems") {
+                if !NSWorkspace.shared.open(url) {
+                    if let fallbackUrl = URL(string: "x-apple.systempreferences:") {
+                        NSWorkspace.shared.open(fallbackUrl)
+                    }
+                }
+            }
         }
     }
     
