@@ -1,32 +1,43 @@
 # WiFiSnifferTool for MacOS
 
+[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
+
 macOSで動作するWiFiスニファーツールです。特権ヘルパーを使用してWiFiパケットをキャプチャし、Wiresharkでリアルタイムに解析することができます。
 
 ## 主な機能
 
-- **メニューバー常駐**: メニューバーから素早くキャプチャの開始/停止が可能です。
-- **直感的な操作**: 周波数帯（2.4GHz/5GHz）、チャンネル幅、チャンネルを段階的に選択してキャプチャを開始します。
-- **Wireshark連携**: キャプチャ開始時に自動的にWiresharkを起動し、名前付きパイプ（Named Pipe）を介してリアルタイムにパケットを転送します。
-- **ステータス表示**: キャプチャ中の周波数、チャンネル幅、チャンネル番号をメニューバーで確認できます。
+- Wifiのパケットキャプチャを行いリアルタイムでWiresharkに表示する
+- 周辺のアクセスポイントの一覧表示およびグラフ表示
 
-## 使い方
-
-1. **アプリの起動**
-   `WiFiSnifferTool`を起動すると、メニューバーにアイコンが表示されます。
-
-2. **キャプチャの開始**
-   - メニューバーのアイコンをクリックします。
-   - 「Start Capture (2.4GHz)」または「Start Capture (5GHz)」を選択します。
-   - チャンネル幅（20MHz, 40MHz, 80MHz等）を選択します。
-   - 目的のチャンネル番号を選択すると、キャプチャが開始されます。
-
-3. **解析**
-   キャプチャが開始されると、自動的にWiresharkが起動し、キャプチャしたパケットが表示されます。
-
-4. **キャプチャの停止**
-   メニューバーの「停止」をクリックすると、キャプチャを停止します。
+![Main View](docs/images/main_view.png)
+![AP List](docs/images/ap_list.png)
 
 ## システム要件
 
-- MacOS 26~ (Apple Silicon)
+- MacOS 15~ (Apple Silicon)
 - Wiresharkがインストールされていること
+
+## インストール
+
+以下からビルド済みのもの(WiFiSnifferTool.app.zip)をダウンロードしてください。  
+https://github.com/puchinya/WiFiSnifferTool/releases
+
+圧縮ファイル展開後にアプリケーションフォルダにWiFiSnifferTool.appをコピーしてください。  
+(Safariでダウンロードした場合は自動的に展開されています。)  
+その後、アプリケーションを起動してください。  
+アプリケーション起動後に以下の設定が必要です。  
+- システム設定=>一般=>ログイン項目と拡張機能のWifiSnifferToolsをONにする。  
+* WiFiパケットキャプチャには特権での実行が必要になるため、この設定が必要です。
+- システム設定=>プライバシーとセキュリティ=>位置情報サービス=>WifiSnifferToolをONにする。  
+*周辺無線APのSSID名を表示するのに必要です。
+
+
+## 使い方
+
+### WiFiキャプチャ
+トレイアイコンをクリックして、キャプチャ対象のチャンネル等を設定後にキャプチャ開始ボタンを押してください。  
+WireSharkが起動されて、キャプチャが開始されます。
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
