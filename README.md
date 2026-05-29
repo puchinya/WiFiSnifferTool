@@ -38,6 +38,9 @@ https://github.com/puchinya/WiFiSnifferTool/releases
 トレイアイコンをクリックして、キャプチャ対象のチャンネル等を設定後にキャプチャ開始ボタンを押してください。  
 WireSharkが起動されて、キャプチャが開始されます。
 
+WireSharkでの復号化方法.  
+https://www.daradara.net/packet-capture/wireshark_wifi_packet_decrypt_for_mac/
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
