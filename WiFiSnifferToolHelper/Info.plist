@@ -9,7 +9,7 @@
 	<key>CFBundleName</key>
 	<string>WiFiSnifferToolHelper</string>
 	<key>CFBundleVersion</key>
-	<string>1.2</string>
+	<string>1.4</string>
 	<key>SMAuthorizedClients</key>
 	<array>
 		<string>anchor apple generic and identifier &quot;jp.daradara.WiFiSnifferTool&quot; and certificate leaf[subject.OU] = &quot;57KZ5N4K7K&quot;</string>
