@@ -336,7 +336,15 @@ class MainViewModel {
                         self?.launchWireshark()
                         
                         // 成功時の確定設定パラメータのログ出力 (MainViewModel側)
-                        let bandStr = (self?.selectedChannel ?? 0) <= 14 ? "2.4 GHz" : "5 GHz"
+                        let channel = self?.selectedChannel ?? 0
+                        let bandStr: String
+                        if channel <= 14 {
+                            bandStr = "2.4 GHz"
+                        } else if (32...177).contains(channel) {
+                            bandStr = "5 GHz"
+                        } else {
+                            bandStr = "6 GHz"
+                        }
                         print("--- WiFi Sniffer App: キャプチャ開始成功 ---")
                         print("  - インターフェース: \(interface)")
                         print("  - チャンネル: \(self?.selectedChannel ?? 0)")

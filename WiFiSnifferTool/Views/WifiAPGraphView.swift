@@ -35,6 +35,7 @@ struct WifiAPGraphView: View {
                 Picker("周波数帯:", selection: $selectedBand) {
                     Text("2.4 GHz").tag("2.4 GHz")
                     Text("5 GHz").tag("5 GHz")
+                    Text("6 GHz").tag("6 GHz")
                 }
                 .pickerStyle(.segmented)
                 .frame(width: 200)
@@ -140,8 +141,10 @@ struct WifiAPGraphView: View {
             let xPx: Double
             if selectedBand == "2.4 GHz" {
                 xPx = (pt.channel / 14.0) * screenWidth
-            } else {
+            } else if selectedBand == "5 GHz" {
                 xPx = ((pt.channel - 30.0) / 140.0) * screenWidth
+            } else {
+                xPx = ((pt.channel - 1.0) / 233.0) * screenWidth
             }
             
             // Y座標のピクセル換算（下が -100, 上が -30）
@@ -307,9 +310,12 @@ struct WifiAPGraphView: View {
     private var xAxisDomain: ClosedRange<Double> {
         if selectedBand == "2.4 GHz" {
             return 0...14
-        } else {
+        } else if selectedBand == "5 GHz" {
             // 5GHz: スキャンのたびにスケールが変わってガタガタ動かないよう、固定範囲 (30...170) にします
             return 30...170
+        } else {
+            // 6GHz: チャンネル範囲 1〜233
+            return 1...233
         }
     }
     
@@ -317,9 +323,12 @@ struct WifiAPGraphView: View {
     private var xAxisTicks: [Double] {
         if selectedBand == "2.4 GHz" {
             return Array(1...13).map { Double($0) }
-        } else {
+        } else if selectedBand == "5 GHz" {
             // 5GHz: スキャンのたびに目盛りの増減で軸幅が変動しないよう、代表的な主要チャンネルに固定します
             return [36, 48, 52, 64, 100, 116, 132, 144, 149, 165]
+        } else {
+            // 6GHz: 主要なPSCチャンネルなどを代表としてプロット (16チャンネルおき)
+            return [5, 37, 69, 101, 133, 165, 197, 229]
         }
     }
     
@@ -391,6 +400,7 @@ struct WifiAPGraphView: View {
     WifiAPGraphView(accessPoints: [
         WifiAPListViewModel.AccessPoint(id: "1", ssid: "Test-2.4G-A", bssid: "00:11:22:33:44:55", rssi: -55, band: "2.4 GHz", channel: 6, width: "20 MHz", security: "WPA2"),
         WifiAPListViewModel.AccessPoint(id: "2", ssid: "Test-2.4G-B", bssid: "00:11:22:33:44:66", rssi: -65, band: "2.4 GHz", channel: 8, width: "40 MHz", security: "WPA3"),
-        WifiAPListViewModel.AccessPoint(id: "3", ssid: "Test-5G-A", bssid: "00:11:22:33:44:77", rssi: -45, band: "5 GHz", channel: 36, width: "80 MHz", security: "WPA2")
+        WifiAPListViewModel.AccessPoint(id: "3", ssid: "Test-5G-A", bssid: "00:11:22:33:44:77", rssi: -45, band: "5 GHz", channel: 36, width: "80 MHz", security: "WPA2"),
+        WifiAPListViewModel.AccessPoint(id: "4", ssid: "Test-6G-A", bssid: "00:11:22:33:44:88", rssi: -50, band: "6 GHz", channel: 37, width: "160 MHz", security: "WPA3")
     ])
 }

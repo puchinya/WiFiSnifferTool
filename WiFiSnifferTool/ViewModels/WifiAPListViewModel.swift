@@ -160,6 +160,7 @@ class WifiAPListViewModel: NSObject, CLLocationManagerDelegate {
                         switch chan.channelBand {
                         case .band2GHz: band = "2.4 GHz"
                         case .band5GHz: band = "5 GHz"
+                        case .band6GHz: band = "6 GHz"
                         @unknown default: band = "Unknown"
                         }
                     } else {

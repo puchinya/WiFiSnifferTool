@@ -200,6 +200,7 @@ struct WifiAPListView: View {
                 Text("すべて").tag("All")
                 Text("2.4 GHz").tag("2.4 GHz")
                 Text("5 GHz").tag("5 GHz")
+                Text("6 GHz").tag("6 GHz")
             }
             .pickerStyle(.segmented)
             .frame(width: 200)
@@ -368,6 +369,8 @@ struct AccessPointRow: View {
             return Color.blue.opacity(0.15)
         } else if band == "5 GHz" {
             return Color.green.opacity(0.15)
+        } else if band == "6 GHz" {
+            return Color.purple.opacity(0.15)
         }
         return Color.secondary.opacity(0.15)
     }
@@ -377,6 +380,8 @@ struct AccessPointRow: View {
             return Color.blue
         } else if band == "5 GHz" {
             return Color.green
+        } else if band == "6 GHz" {
+            return Color.purple
         }
         return Color.primary
     }

@@ -203,8 +203,11 @@ class WiFiCaptureHelper: NSObject, WiFiCaptureHelperProtocol {
         default: targetWidth = .widthUnknown
         }
         
-        // チャンネル番号から周波数帯（Band）を自動判定 (14以下は2.4GHz、それ以上は5GHz)
-        let expectedBand: CWChannelBand = channel <= 14 ? .band2GHz : .band5GHz
+        // 利用可能なチャンネルから該当するチャンネルをフィルタリングして周波数帯（Band）を自動判定
+        var expectedBand: CWChannelBand = channel <= 14 ? .band2GHz : .band5GHz
+        if let matched = supportedChannels.first(where: { $0.channelNumber == channel }) {
+            expectedBand = matched.channelBand
+        }
         
         // 1. 指定のチャンネル番号、帯域(Band)、および幅(Width)がすべて一致するものを探す
         var targetChannel = supportedChannels.first(where: {
